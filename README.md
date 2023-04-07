@@ -13,7 +13,7 @@ Here's an example of a SQL query before and after being formatted by Sleek:
 ### Before
 
 ```sql
-SELECT id, name, email FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > 100) AND status = 'active'
+select id, name, email from users where id in (select user_id from orders where total > 100) and status = 'active'
 ```
 
 ### After
