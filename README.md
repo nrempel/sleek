@@ -4,7 +4,7 @@ Sleek is a CLI tool for formatting SQL files. It helps you maintain a consistent
 style across your SQL code, enhancing readability and productivity.
 
 The heavy lifting is done by the
-[sql-formatter](https://github.com/shssoichiro/sqlformat-rs) crate.
+[sqlformat](https://github.com/shssoichiro/sqlformat-rs) crate.
 
 ## Features
 
