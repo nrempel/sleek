@@ -79,7 +79,7 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 - `-U`, `--uppercase <uppercase>`: Change reserved keywords to ALL CAPS
   (default: true).
 - `-l`, `--lines_between_queries <lines_between_queries>`: Set the number of
-  line breaks after a query (default: 1).
+  line breaks after a query (default: 2).
 
 ## Examples
 
