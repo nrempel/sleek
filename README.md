@@ -6,6 +6,37 @@ style across your SQL code, enhancing readability and productivity.
 The heavy lifting is done by the
 [sqlformat](https://github.com/shssoichiro/sqlformat-rs) crate.
 
+## Before and After
+
+Here's an example of a SQL query before and after being formatted by Sleek:
+
+### Before
+
+```sql
+SELECT id, name, email FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > 100) AND status = 'active'
+```
+
+### After
+
+```sql
+SELECT
+    id,
+    name,
+    email
+FROM
+    users
+WHERE
+    id IN (
+        SELECT
+            user_id
+        FROM
+            orders
+        WHERE
+            total > 100
+    )
+    AND STATUS = 'active'
+```
+
 ## Features
 
 - Automatically format SQL files using customizable indentation and character
