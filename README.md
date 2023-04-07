@@ -1,4 +1,4 @@
-# ✨ Sleek: SQL Formatter
+# Sleek: SQL Formatter ✨
 
 [![Crates.io](https://img.shields.io/crates/v/sleek.svg)](https://crates.io/crates/sleek)
 
