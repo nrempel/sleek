@@ -1,12 +1,11 @@
-use std::error::Error;
-use std::fs;
 use std::io::{Read, Write};
-use std::path::PathBuf;
 use std::process;
+use std::{fs, io};
 
 use clap::Parser;
 use glob::glob;
 use sqlformat::{format, FormatOptions, Indent, QueryParams};
+use thiserror::Error;
 
 fn main() {
     let options = Options::parse();
@@ -16,15 +15,43 @@ fn main() {
         lines_between_queries: options.lines_between_queries,
     };
 
-    let result = || -> Result<(), String> {
-        for file_path in options.file_paths {
-            let entries =
-                glob(&file_path).map_err(|e| format!("Failed to read glob pattern: {}", e))?;
+    let result = || -> Result<(), Error> {
+        match options.file_paths.is_empty() {
+            // If no file paths are provided, read from stdin
+            true => {
+                let mut input = String::new();
+                io::stdin().read_to_string(&mut input)?;
 
-            for entry in entries {
-                let path = entry.map_err(|e| format!("Error processing file path: {}", e))?;
-                process_file(&path, options.check, format_options)
-                    .map_err(|e| format!("Error processing {}: {}", path.display(), e))?;
+                let formatted = format(&input, &QueryParams::default(), format_options);
+                if options.check {
+                    if input != formatted {
+                        return Err(Error::Check);
+                    }
+                    return Ok(());
+                }
+
+                io::stdout().write_all(formatted.as_bytes())?;
+            }
+            false => {
+                for file_path in options.file_paths {
+                    let entries = glob(&file_path)?;
+                    for entry in entries {
+                        let path = entry?;
+
+                        let mut input = String::new();
+                        fs::File::open(&path)?.read_to_string(&mut input)?;
+
+                        let formatted = format(&input, &QueryParams::default(), format_options);
+                        if options.check {
+                            if input != formatted {
+                                return Err(Error::Check);
+                            }
+                            return Ok(());
+                        }
+
+                        fs::File::create(&path)?.write_all(formatted.as_bytes())?;
+                    }
+                }
             }
         }
         Ok(())
@@ -33,38 +60,28 @@ fn main() {
     process::exit(match result() {
         Ok(()) => 0,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("{}", e);
             1
         }
     })
 }
 
-fn process_file(
-    path: &PathBuf,
-    check: bool,
-    format_options: FormatOptions,
-) -> Result<(), Box<dyn Error>> {
-    let mut input = String::new();
-    fs::File::open(path)?.read_to_string(&mut input)?;
-
-    let formatted = format(&input, &QueryParams::default(), format_options);
-
-    if check {
-        if input != formatted {
-            return Err("Run without --check to format the file.".into());
-        }
-        return Ok(());
-    }
-
-    fs::File::create(path)?.write_all(formatted.as_bytes())?;
-
-    Ok(())
+#[derive(Error, Debug)]
+enum Error {
+    #[error("Failed to read from stdin: {0}")]
+    Io(#[from] io::Error),
+    #[error("Failed to read glob pattern: {0}")]
+    Glob(#[from] glob::GlobError),
+    #[error("Failed to read glob pattern: {0}")]
+    Patter(#[from] glob::PatternError),
+    #[error("Input is not formatted correctly. Run without --check to format the input.")]
+    Check,
 }
 
 #[derive(Parser)]
 struct Options {
-    /// File path(s) to format, supports glob patterns
-    #[clap(required(true))]
+    /// File path(s) to format, supports glob patterns.
+    /// If no file paths are provided, reads from stdin.
     file_paths: Vec<String>,
     /// Check if the code is already formatted
     #[clap(short, long)]
@@ -78,41 +95,4 @@ struct Options {
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
     lines_between_queries: u8,
-}
-
-#[cfg(test)]
-mod tests {
-    use std::path::Path;
-
-    use super::*;
-
-    #[test]
-    fn test_process_file() -> Result<(), Box<dyn Error>> {
-        let test_input = "SELECT * from users;";
-        let test_output = "SELECT\n    *\nFROM\n    users;";
-        let test_path = "test_input.sql";
-
-        // Create the test input file
-        fs::write(test_path, test_input)?;
-
-        let format_options = FormatOptions {
-            indent: Indent::Spaces(4),
-            uppercase: true,
-            lines_between_queries: 2,
-        };
-
-        // Run the process_file function on the test input file
-        process_file(&Path::new(test_path).to_path_buf(), false, format_options)?;
-
-        // Read the contents of the formatted file
-        let formatted_contents = fs::read_to_string(test_path)?;
-
-        // Clean up the test file
-        fs::remove_file(test_path)?;
-
-        // Assert that the contents match the expected output
-        assert_eq!(formatted_contents, test_output);
-
-        Ok(())
-    }
 }

@@ -3,8 +3,8 @@
 [![Crates.io](https://img.shields.io/crates/v/sleek.svg)](https://crates.io/crates/sleek)
 [![GitHub Actions](https://github.com/nrempel/sleek/actions/workflows/rust.yml/badge.svg)](https://github.com/nrempel/sleek/actions)
 
-Sleek is a CLI tool for formatting SQL files. It helps you maintain a consistent
-style across your SQL code, enhancing readability and productivity.
+Sleek is a CLI tool for formatting SQL files and strings. It helps you maintain
+a consistent style across your SQL code, enhancing readability and productivity.
 
 The heavy lifting is done by the
 [sqlformat](https://github.com/shssoichiro/sqlformat-rs) crate.
@@ -42,17 +42,16 @@ WHERE
 
 ## Features
 
-- Automatically format SQL files using customizable indentation and character
-  case options.
-- Supports glob patterns, allowing you to format multiple files at once with
-  ease.
-- Check whether your SQL files are already formatted without altering them.
+- Format SQL files using customizable indentation and character case options
+- Supports glob patterns, allowing you to format multiple files and patterns
+- Check whether your SQL files are already formatted without altering them with
+  the `--check` flag
 
 ## Installation
 
 To install Sleek, you'll need to have
 [Rust](https://www.rust-lang.org/tools/install) installed on your system. Once
-Rust is installed, follow these simple steps:
+Rust is installed, you can install Sleek with Cargo:
 
 ```bash
 cargo install sleek
@@ -73,7 +72,6 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 - `-c`, `--check`: Check if the code is already formatted. If not, it will exit
   with an error message.
 - `-h`, `--help`: Prints help information.
-- `-V`, `--version`: Prints version information.
 
 ### Options
 
@@ -85,6 +83,13 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
   line breaks after a query (default: 2).
 
 ## Examples
+
+To check if a query is formatted correctly:
+
+```bash
+> echo "select * from users" | sleek --check
+Input is not formatted correctly. Run without --check to format the input.
+```
 
 To format a single file with the default options:
 
