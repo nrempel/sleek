@@ -1,4 +1,6 @@
-# Sleek: SQL Formatter
+# ✨ Sleek: SQL Formatter
+
+[![Crates.io](https://img.shields.io/crates/v/sleek.svg)](https://crates.io/crates/sleek)
 
 Sleek is a CLI tool for formatting SQL files. It helps you maintain a consistent
 style across your SQL code, enhancing readability and productivity.
