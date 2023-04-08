@@ -49,7 +49,7 @@ jobs:
           mkdir release
           cp artifacts/ubuntu-latest/release/sleek/sleek-linux
           cp artifacts/macos-latest/release/sleek/sleek-macos
-          cp artifacts/windows-latest/release/sleek/sleek-windows.exe
+          cp artifacts/windows-latest/release/sleek/sleek.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
