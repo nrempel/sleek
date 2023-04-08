@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use std::process;
 use std::{fs, io};
 
-use clap::Parser;
+use clap::{crate_version, Parser};
 use glob::glob;
 use sqlformat::{format, FormatOptions, Indent, QueryParams};
 use thiserror::Error;
@@ -79,6 +79,7 @@ enum Error {
 }
 
 #[derive(Parser)]
+#[clap(version = crate_version!())]
 struct Options {
     /// File path(s) to format, supports glob patterns.
     /// If no file paths are provided, reads from stdin.

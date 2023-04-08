@@ -75,6 +75,7 @@ dependencies = [
  "anstyle",
  "bitflags",
  "clap_lex",
+ "once_cell",
  "strsim",
 ]
 
@@ -262,7 +263,7 @@ dependencies = [
 
 [[package]]
 name = "sleek"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "clap",
  "glob",

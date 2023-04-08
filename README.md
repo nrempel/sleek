@@ -72,6 +72,7 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 - `-c`, `--check`: Check if the code is already formatted. If not, it will exit
   with an error message.
 - `-h`, `--help`: Prints help information.
+- `-V`, `--version`: Prints version information.
 
 ### Options
 

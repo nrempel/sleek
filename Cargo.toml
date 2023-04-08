@@ -1,6 +1,6 @@
 [package]
 name = "sleek"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Sleek is a CLI tool for formatting SQL files."
 authors = ["Nicholas Rempel <nbrempel@gmail.com>"]
@@ -11,7 +11,7 @@ repository = "https://github.com/nrempel/sleek"
 
 
 [dependencies]
-clap = { version = "4.2.1", features = ["derive"] }
+clap = { version = "4.2.1", features = ["derive", "cargo"] }
 glob = "0.3.1"
 sqlformat = "0.2.1"
 thiserror = "1.0.40"
