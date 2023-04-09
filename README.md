@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/sleek.svg)](https://crates.io/crates/sleek)
 [![GitHub Actions](https://github.com/nrempel/sleek/actions/workflows/rust.yml/badge.svg)](https://github.com/nrempel/sleek/actions)
+[![GitHub Releases](https://img.shields.io/github/release/nrempel/sleek.svg)](https://github.com/nrempel/sleek/releases)
 
 Sleek is a CLI tool for formatting SQL. It helps you maintain a consistent style
 across your SQL code, enhancing readability and productivity.
@@ -49,7 +50,16 @@ WHERE
 
 ## Installation
 
-To install Sleek, you'll need to have
+### Download Compiled Binaries
+
+You can download the compiled binaries for Sleek from the
+[GitHub Releases](https://github.com/nrempel/sleek/releases) page. Choose the
+binary that corresponds to your operating system and architecture, and place it
+in a directory included in your system's `PATH` environment variable.
+
+### Install with Cargo
+
+To install Sleek using Cargo, you'll need to have
 [Rust](https://www.rust-lang.org/tools/install) installed on your system. Once
 Rust is installed, you can install Sleek with Cargo:
 
