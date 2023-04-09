@@ -44,9 +44,9 @@ jobs:
       - name: Package artifacts
         run: |
           mkdir release
-          cp artifacts/ubuntu-latest/release/sleek/sleek-linux
-          cp artifacts/macos-latest/release/sleek/sleek-macos
-          cp artifacts/windows-latest/release/sleek/sleek.exe
+          cp artifacts/ubuntu-latest/release/sleek/sleek-linux release/sleek-linux
+          cp artifacts/macos-latest/release/sleek/sleek-macos release/sleek-macos
+          cp artifacts/windows-latest/release/sleek/sleek.exe release/sleek.exe
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
