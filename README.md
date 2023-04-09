@@ -65,7 +65,8 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 
 ### Arguments
 
-- `<file_paths>...`: File path(s) to format, supports glob patterns.
+- `<file_paths>...`: File path(s) to format, supports glob patterns. If no file
+  paths are provided, reads from stdin.
 
 ### Flags
 
@@ -85,7 +86,17 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 
 ## Examples
 
-To check if a query is formatted correctly:
+Format a query from stdin:
+
+```bash
+> echo "select * from users" | sleek --uppercase
+SELECT
+    *
+FROM
+    user
+```
+
+To check if a query is formatted correctly from stdin:
 
 ```bash
 > echo "select * from users" | sleek --check
