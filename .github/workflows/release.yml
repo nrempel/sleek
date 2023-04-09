@@ -1,9 +1,10 @@
----
 name: Build and Release
+
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
+      - v*
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -51,4 +52,4 @@ jobs:
         with:
           files: release/*
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
