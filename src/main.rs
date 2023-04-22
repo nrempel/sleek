@@ -1,3 +1,4 @@
+use std::fmt::Write as FmtWrite;
 use std::io::{Read, Write};
 use std::process;
 use std::{fs, io};
@@ -41,7 +42,12 @@ fn main() {
                         let mut input = String::new();
                         fs::File::open(&path)?.read_to_string(&mut input)?;
 
-                        let formatted = format(&input, &QueryParams::default(), format_options);
+                        let mut formatted = format(&input, &QueryParams::default(), format_options);
+
+                        if options.trailing_newline && !formatted.ends_with('\n') {
+                            writeln!(&mut formatted)?;
+                        }
+
                         if options.check {
                             if input != formatted {
                                 return Err(Error::Check);
@@ -76,6 +82,8 @@ enum Error {
     Patter(#[from] glob::PatternError),
     #[error("Input is not formatted correctly. Run without --check to format the input.")]
     Check,
+    #[error("Failed to append a trailing newline to the formatted SQL.")]
+    Format(#[from] std::fmt::Error),
 }
 
 #[derive(Parser)]
@@ -96,4 +104,8 @@ struct Options {
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
     lines_between_queries: u8,
+    /// Enforce a tailing newline at the end of the file
+    #[clap(short = 'n', long, default_value = "false")]
+    trailing_newline: bool,
 }
+
