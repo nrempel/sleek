@@ -1,4 +1,4 @@
-# Sleek: SQL Formatter ✨
+# Sleek ✨
 
 [![Crates.io](https://img.shields.io/crates/v/sleek.svg)](https://crates.io/crates/sleek)
 [![GitHub Actions](https://github.com/nrempel/sleek/actions/workflows/rust.yml/badge.svg)](https://github.com/nrempel/sleek/actions)
