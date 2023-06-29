@@ -12,7 +12,7 @@ fn main() {
     let options = Options::parse();
     let format_options = FormatOptions {
         indent: Indent::Spaces(options.indent_spaces),
-        uppercase: options.uppercase,
+        uppercase: options.uppercase.unwrap_or(true),
         lines_between_queries: options.lines_between_queries,
     };
 
@@ -99,8 +99,8 @@ struct Options {
     #[clap(short, long, default_value = "4")]
     indent_spaces: u8,
     /// Change reserved keywords to ALL CAPS
-    #[clap(short = 'U', long, default_value = "true")]
-    uppercase: bool,
+    #[clap(short = 'U', long)]
+    uppercase: Option<bool>,
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
     lines_between_queries: u8,
@@ -108,4 +108,3 @@ struct Options {
     #[clap(short = 'n', long, default_value = "false")]
     trailing_newline: bool,
 }
-
