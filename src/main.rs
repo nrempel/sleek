@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::process;
 use std::{fs, io};
 
-use clap::{crate_version, Parser};
+use clap::{crate_version, ArgAction, Parser};
 use glob::glob;
 use sqlformat::{format, FormatOptions, Indent, QueryParams};
 use thiserror::Error;
@@ -99,7 +99,15 @@ struct Options {
     #[clap(short, long, default_value = "4")]
     indent_spaces: u8,
     /// Change reserved keywords to ALL CAPS
-    #[clap(short = 'U', long, default_value = "true")]
+    #[clap(
+        short = 'U',
+        long,
+        default_value("true"),
+        default_missing_value("true"),
+        require_equals(true),
+        num_args(0..=1),
+        action = ArgAction::Set
+    )]
     uppercase: bool,
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
