@@ -14,4 +14,4 @@ repository = "https://github.com/nrempel/sleek"
 clap = { version = "4.5.1", features = ["derive", "cargo"] }
 glob = "0.3.1"
 sqlformat = "0.2.3"
-thiserror = "1.0.57"
+thiserror = "1.0.58"
