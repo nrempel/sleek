@@ -87,11 +87,11 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
 
 ### Options
 
-- `-i`, `--indent_spaces <indent_spaces>`: Set the number of spaces to use for
+- `-i`, `--indent-spaces <indent-spaces>`: Set the number of spaces to use for
   indentation (default: 4).
 - `-U`, `--uppercase <uppercase>`: Change reserved keywords to ALL CAPS
   (default: true).
-- `-l`, `--lines_between_queries <lines_between_queries>`: Set the number of
+- `-l`, `--lines-between-queries <lines-between-queries>`: Set the number of
   line breaks after a query (default: 2).
 
 ## Examples
@@ -128,7 +128,7 @@ sleek "queries/*.sql"
 To format files with custom options:
 
 ```bash
-sleek --indent_spaces 2 --uppercase false "queries/*.sql"
+sleek --indent-spaces 2 --uppercase false "queries/*.sql"
 ```
 
 To check if files are already formatted:
