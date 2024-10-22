@@ -137,6 +137,21 @@ To check if files are already formatted:
 sleek --check "queries/*.sql"
 ```
 
+## Integration with editors
+
+### Helix
+
+You need to add a formatter for the sql language.
+
+```toml
+[[language]]
+name = "sql"
+auto-format= false 
+formatter = { command ="sleek"}
+```
+
+Alternatively you can use the pipe feature to select a sql request into a codebase in python/go/rust/(your language or choice) and format it using sleek.
+
 ## License
 
 This project is available under the MIT License.
