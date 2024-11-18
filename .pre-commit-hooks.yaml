@@ -1,0 +1,7 @@
+- id: sleek
+  name: Sleek
+  entry: sleek
+  language: rust
+  files: ""
+  exclude: ^$
+  types: [sql]
