@@ -67,6 +67,18 @@ Rust is installed, you can install Sleek with Cargo:
 cargo install sleek
 ```
 
+### Use as a pre-commit hook
+
+Sleek can be run as a pre-commit hook. Add the following config to your project's `.pre-commit-hooks.yaml`:
+```yaml
+- repo: https://github.com/nrempel/sleek
+  rev: v0.3.1
+  hooks:
+    - id: sleek
+      args: [--trailing-newline]
+```
+You can configure how Sleek will be run by changing the `args` argument to your liking.
+
 ## Usage
 
 ```bash
@@ -93,6 +105,7 @@ sleek [FLAGS] [OPTIONS] <file_paths>...
   (default: true).
 - `-l`, `--lines_between_queries <lines_between_queries>`: Set the number of
   line breaks after a query (default: 2).
+- `-n`, `--trailing-newline`: Force a trailing newline at the end of each file.
 
 ## Examples
 

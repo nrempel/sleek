@@ -1,5 +1,5 @@
 - id: sleek
-  name: Sleek
+  name: sleek
   entry: sleek
   language: rust
   files: ""
