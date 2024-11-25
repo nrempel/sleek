@@ -104,7 +104,7 @@ struct Options {
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
     lines_between_queries: u8,
-    /// Enforce a tailing newline at the end of the file
+    /// Enforce a trailing newline at the end of the file.
     #[clap(short = 'n', long, default_value = "false")]
     trailing_newline: bool,
 }
