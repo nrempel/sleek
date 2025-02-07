@@ -12,7 +12,7 @@ fn main() {
     let options = Options::parse();
     let format_options = FormatOptions {
         indent: Indent::Spaces(options.indent_spaces),
-        uppercase: options.uppercase.unwrap_or(true),
+        uppercase: options.uppercase,
         lines_between_queries: options.lines_between_queries,
     };
 
@@ -93,18 +93,18 @@ struct Options {
     /// If no file paths are provided, reads from stdin.
     file_paths: Vec<String>,
     /// Check if the code is already formatted
-    #[clap(short, long)]
+    #[clap(short, long, num_args(0..=1))]
     check: bool,
     /// Set the number of spaces to use for indentation
     #[clap(short, long, default_value = "4")]
     indent_spaces: u8,
-    /// Change reserved keywords to ALL CAPS
-    #[clap(short = 'U', long)]
-    uppercase: Option<bool>,
+    /// Change reserved keywords to ALL CAPS, default true
+    #[clap(short = 'U', long, num_args(0..=1), default_value="true")]
+    uppercase: bool,
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
     lines_between_queries: u8,
-    /// Enforce a tailing newline at the end of the file
-    #[clap(short = 'n', long, default_value = "false")]
+    /// Enforce a trailing newline at the end of the file
+    #[clap(short = 'n', long, num_args(0..=1))]
     trailing_newline: bool,
 }
