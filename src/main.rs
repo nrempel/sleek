@@ -12,8 +12,9 @@ fn main() {
     let options = Options::parse();
     let format_options = FormatOptions {
         indent: Indent::Spaces(options.indent_spaces),
-        uppercase: options.uppercase.unwrap_or(true),
+        uppercase: options.uppercase,
         lines_between_queries: options.lines_between_queries,
+        ignore_case_convert: None,
     };
 
     let result = || -> Result<(), Error> {
@@ -23,7 +24,7 @@ fn main() {
                 let mut input = String::new();
                 io::stdin().read_to_string(&mut input)?;
 
-                let formatted = format(&input, &QueryParams::default(), format_options);
+                let formatted = format(&input, &QueryParams::default(), &format_options);
                 if options.check {
                     if input != formatted {
                         return Err(Error::Check);
@@ -42,7 +43,7 @@ fn main() {
                         let mut input = String::new();
                         fs::File::open(&path)?.read_to_string(&mut input)?;
 
-                        let mut formatted = format(&input, &QueryParams::default(), format_options);
+                        let mut formatted = format(&input, &QueryParams::default(), &format_options);
 
                         if options.trailing_newline && !formatted.ends_with('\n') {
                             writeln!(&mut formatted)?;
@@ -99,7 +100,7 @@ struct Options {
     #[clap(short, long, default_value = "4")]
     indent_spaces: u8,
     /// Change reserved keywords to ALL CAPS
-    #[clap(short = 'U', long)]
+    #[clap(short = 'U', long, default_value = "true")]
     uppercase: Option<bool>,
     /// Set the number of line breaks after a query
     #[clap(short, long, default_value = "2")]
