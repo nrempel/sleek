@@ -1,0 +1,107 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'vscode-v*'  # Trigger on tags like vscode-v1.0.0
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to marketplace'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+defaults:
+  run:
+    working-directory: vscode-extension
+
+jobs:
+  publish:
+    name: Publish Extension
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Compile TypeScript
+        run: npm run compile
+
+      - name: Run tests
+        run: npm test
+
+      - name: Package extension
+        run: npm run package
+
+      # Manual publishing instructions
+      - name: Manual Publishing Instructions
+        run: |
+          echo "To publish to the VS Code Marketplace, run:"
+          echo "  npx vsce publish"
+          echo "To publish to Open VSX Registry, run:"
+          echo "  npx ovsx publish"
+          echo "Ensure you have VSCE_PAT and OVSX_PAT set as environment variables or in your .npmrc/.ovsxrc."
+
+      # The following steps are commented out to keep publishing manual
+      # - name: Publish to VS Code Marketplace
+      #   run: npx vsce publish
+      #   env:
+      #     VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      #
+      # - name: Publish to Open VSX Registry
+      #   run: npx ovsx publish
+      #   env:
+      #     OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      - name: Extract version from tag
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/vscode-v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Update package.json version
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        run: |
+          npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+          npm run package
+
+      - name: Create GitHub Release for Extension
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: vscode-extension/*.vsix
+          tag_name: ${{ github.ref_name }}
+          name: "VS Code Extension ${{ steps.get_version.outputs.VERSION }}"
+          body: |
+            ## VS Code Extension Release ${{ steps.get_version.outputs.VERSION }}
+            
+            This release includes the Sleek SQL Formatter VS Code extension.
+            
+            ### Installation
+            You can install this extension directly from the VS Code Marketplace or by downloading the `.vsix` file and installing it manually.
+            
+            ### Changes
+            See the [CHANGELOG.md](vscode-extension/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
