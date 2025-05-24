@@ -79,6 +79,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -90,11 +93,40 @@ jobs:
           find artifacts -type f -exec cp {} release/ \;
           ls -la release/
 
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          # Extract the version from the tag (remove 'v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Extracting changelog for version: $VERSION"
+          
+          # Extract the section for this version from CHANGELOG.md
+          # Find the line with [VERSION] and extract until the next version or end
+          awk -v version="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if ($0 ~ "\\[" version "\\]") {
+                found = 1
+                print $0
+                next
+              }
+            }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release_notes.md
+          
+          # Set the content as output (escape for GitHub Actions)
+          {
+            echo 'CHANGELOG<<EOF'
+            cat release_notes.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: release/*
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
           draft: false
           prerelease: false
         env:
