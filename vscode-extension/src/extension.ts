@@ -39,7 +39,13 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
 
         if (choice === 'Download') {
             try {
-                return await this.downloader.downloadSleek();
+                const downloadedPath = await this.downloader.downloadSleek();
+                
+                // Update the setting to reflect the downloaded path
+                const configuration = vscode.workspace.getConfiguration('sleek');
+                await configuration.update('executable', downloadedPath, vscode.ConfigurationTarget.Global);
+                
+                return downloadedPath;
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 vscode.window.showErrorMessage(`Failed to download Sleek: ${errorMessage}`);
@@ -134,7 +140,11 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
                 title: 'Installing Sleek CLI...',
                 cancellable: false
             }, async () => {
-                await this.downloader.downloadSleek();
+                const downloadedPath = await this.downloader.downloadSleek();
+                
+                // Update the setting to reflect the downloaded path
+                const configuration = vscode.workspace.getConfiguration('sleek');
+                await configuration.update('executable', downloadedPath, vscode.ConfigurationTarget.Global);
             });
             
             vscode.window.showInformationMessage('Sleek CLI installed successfully!');
