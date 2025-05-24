@@ -115,6 +115,6 @@ struct Options {
     lines_between_queries: u8,
 
     /// Ensure files end with a trailing newline
-    #[arg(short = 'n', long)]
+    #[arg(short = 'n', long, default_value = "true")]
     trailing_newline: bool,
 }

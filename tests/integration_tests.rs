@@ -109,7 +109,7 @@ fn test_check_file_formatted() {
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("test.sql");
 
-    let input = "SELECT\n    *\nFROM\n    users\nWHERE\n    id = 1";
+    let input = "SELECT\n    *\nFROM\n    users\nWHERE\n    id = 1\n";
     fs::write(&file_path, input).unwrap();
 
     let output = sleek_command()
