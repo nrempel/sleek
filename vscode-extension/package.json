@@ -140,19 +140,19 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "pretest": "npm run compile && npm run lint",
         "lint": "eslint src --ext ts",
-        "test": "node ./out/test/runTest.js",
+        "test": "npm run compile && node --test out/**/*.test.js",
+        "tdd": "npm run compile && node --test --watch out/**/*.test.js",
         "package": "vsce package"
     },
     "devDependencies": {
-        "@types/vscode": "^1.74.0",
         "@types/node": "16.x",
+        "@types/vscode": "^1.74.0",
         "@typescript-eslint/eslint-plugin": "^5.45.0",
         "@typescript-eslint/parser": "^5.45.0",
+        "@vscode/vsce": "^2.15.0",
         "eslint": "^8.28.0",
-        "typescript": "^4.9.4",
-        "@vscode/vsce": "^2.15.0"
+        "typescript": "^4.9.4"
     },
     "author": "Nicholas Rempel <nbrempel@gmail.com>",
     "license": "MIT",
