@@ -4,7 +4,7 @@ import { buildCommand, validateConfig, parseError, isFormattingNeeded, type Slee
 import { SleekDownloader } from './sleek-downloader';
 
 export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
-    private downloader: SleekDownloader;
+    public downloader: SleekDownloader;
 
     constructor(context: vscode.ExtensionContext) {
         this.downloader = new SleekDownloader(context);
@@ -153,6 +153,49 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
             vscode.window.showErrorMessage(`Failed to install Sleek CLI: ${errorMessage}`);
         }
     }
+
+    async checkForUpdates(): Promise<void> {
+        try {
+            const updateInfo = await this.downloader.checkForUpdates();
+            
+            if (updateInfo.hasUpdate && updateInfo.current && updateInfo.latest && updateInfo.releaseInfo) {
+                const choice = await this.downloader.showUpdateNotification({
+                    current: updateInfo.current,
+                    latest: updateInfo.latest,
+                    releaseInfo: updateInfo.releaseInfo
+                });
+
+                if (choice === 'update') {
+                    await this.downloadSleek();
+                }
+            } else {
+                const currentVersion = updateInfo.current || 'unknown';
+                vscode.window.showInformationMessage(`Sleek CLI is up to date (${currentVersion})`);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            vscode.window.showErrorMessage(`Failed to check for updates: ${errorMessage}`);
+        }
+    }
+
+    async getVersionInfo(): Promise<void> {
+        try {
+            const currentVersion = await this.downloader.getCurrentVersion();
+            const updateInfo = await this.downloader.checkForUpdates(currentVersion || undefined);
+            
+            if (currentVersion) {
+                const status = updateInfo.hasUpdate 
+                    ? `${currentVersion} (update available: ${updateInfo.latest})`
+                    : `${currentVersion} (latest)`;
+                vscode.window.showInformationMessage(`Sleek CLI version: ${status}`);
+            } else {
+                vscode.window.showWarningMessage('Sleek CLI not found');
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            vscode.window.showErrorMessage(`Failed to get version info: ${errorMessage}`);
+        }
+    }
 }
 
 class SleekStatusBar {
@@ -270,6 +313,14 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('sleek.downloadCli', async () => {
             await formatter.downloadSleek();
+        }),
+
+        vscode.commands.registerCommand('sleek.checkForUpdates', async () => {
+            await formatter.checkForUpdates();
+        }),
+
+        vscode.commands.registerCommand('sleek.getVersionInfo', async () => {
+            await formatter.getVersionInfo();
         })
     );
 
@@ -293,7 +344,56 @@ export function activate(context: vscode.ExtensionContext) {
     // Initial status update
     statusBar.checkAndUpdateStatus();
 
+    // Periodic update checking (once per day)
+    scheduleUpdateCheck(formatter, context);
+
     console.log('Sleek SQL Formatter extension activated');
+}
+
+/**
+ * Schedule periodic update checking
+ */
+function scheduleUpdateCheck(formatter: SleekFormatter, context: vscode.ExtensionContext): void {
+    const lastCheckKey = 'sleek.lastUpdateCheck';
+    const checkInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    const checkForUpdatesIfNeeded = async () => {
+        const lastCheck = context.globalState.get<number>(lastCheckKey, 0);
+        const now = Date.now();
+
+        if (now - lastCheck > checkInterval) {
+            try {
+                const updateInfo = await formatter.downloader.checkForUpdates();
+                await context.globalState.update(lastCheckKey, now);
+
+                if (updateInfo.hasUpdate && updateInfo.current && updateInfo.latest && updateInfo.releaseInfo) {
+                    const choice = await formatter.downloader.showUpdateNotification({
+                        current: updateInfo.current,
+                        latest: updateInfo.latest,
+                        releaseInfo: updateInfo.releaseInfo
+                    });
+
+                    if (choice === 'update') {
+                        await formatter.downloadSleek();
+                    }
+                }
+            } catch (error) {
+                // Silently fail periodic update checks
+                console.warn('Periodic update check failed:', error);
+            }
+        }
+    };
+
+    // Check on activation (after a short delay)
+    setTimeout(checkForUpdatesIfNeeded, 5000);
+
+    // Set up periodic checking
+    const intervalId = setInterval(checkForUpdatesIfNeeded, checkInterval);
+    
+    // Clean up interval on deactivation
+    context.subscriptions.push({
+        dispose: () => clearInterval(intervalId)
+    });
 }
 
 export function deactivate() {
