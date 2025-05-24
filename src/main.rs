@@ -40,8 +40,7 @@ fn main() {
                     for entry in entries {
                         let path = entry?;
 
-                        let mut input = String::new();
-                        fs::File::open(&path)?.read_to_string(&mut input)?;
+                        let input = fs::read_to_string(&path)?;
 
                         let mut formatted =
                             format(&input, &QueryParams::default(), &format_options);
