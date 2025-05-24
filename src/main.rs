@@ -9,6 +9,14 @@ use thiserror::Error;
 
 fn main() {
     let options = Options::parse();
+
+    if let Err(e) = run(options) {
+        eprintln!("{e}");
+        process::exit(1);
+    }
+}
+
+fn run(options: Options) -> Result<(), Error> {
     let format_options = FormatOptions {
         indent: Indent::Spaces(options.indent_spaces),
         uppercase: Some(options.uppercase.unwrap_or(true)),
@@ -16,60 +24,56 @@ fn main() {
         ignore_case_convert: None,
     };
 
-    let result = || -> Result<(), Error> {
-        match options.file_paths.is_empty() {
-            // If no file paths are provided, read from stdin
-            true => {
-                let mut input = String::new();
-                io::stdin().read_to_string(&mut input)?;
+    match options.file_paths.is_empty() {
+        true => process_stdin(&format_options, options.check),
+        false => process_files(&options.file_paths, &format_options, &options),
+    }
+}
 
-                let formatted = format(&input, &QueryParams::default(), &format_options);
-                if options.check {
-                    if input != formatted {
-                        return Err(Error::Check);
-                    }
-                    return Ok(());
-                }
+fn process_stdin(format_options: &FormatOptions, check_only: bool) -> Result<(), Error> {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input)?;
 
-                io::stdout().write_all(formatted.as_bytes())?;
-            }
-            false => {
-                for file_path in options.file_paths {
-                    let entries = glob(&file_path)?;
-                    for entry in entries {
-                        let path = entry?;
-
-                        let input = fs::read_to_string(&path)?;
-
-                        let mut formatted =
-                            format(&input, &QueryParams::default(), &format_options);
-
-                        if options.trailing_newline && !formatted.ends_with('\n') {
-                            formatted.push('\n');
-                        }
-
-                        if options.check {
-                            if input != formatted {
-                                return Err(Error::Check);
-                            }
-                            return Ok(());
-                        }
-
-                        fs::write(&path, formatted)?;
-                    }
-                }
-            }
+    let formatted = format(&input, &QueryParams::default(), format_options);
+    if check_only {
+        if input != formatted {
+            return Err(Error::Check);
         }
-        Ok(())
-    };
+        return Ok(());
+    }
 
-    process::exit(match result() {
-        Ok(()) => 0,
-        Err(e) => {
-            eprintln!("{}", e);
-            1
+    io::stdout().write_all(formatted.as_bytes())?;
+    Ok(())
+}
+
+fn process_files(
+    file_paths: &[String],
+    format_options: &FormatOptions,
+    options: &Options,
+) -> Result<(), Error> {
+    for file_path in file_paths {
+        let entries = glob(file_path)?;
+        for entry in entries {
+            let path = entry?;
+            let input = fs::read_to_string(&path)?;
+
+            let mut formatted = format(&input, &QueryParams::default(), format_options);
+
+            if options.trailing_newline && !formatted.ends_with('\n') {
+                formatted.push('\n');
+            }
+
+            if options.check {
+                if input != formatted {
+                    return Err(Error::Check);
+                }
+                return Ok(());
+            }
+
+            fs::write(&path, formatted)?;
         }
-    })
+    }
+    Ok(())
 }
 
 #[derive(Error, Debug)]
