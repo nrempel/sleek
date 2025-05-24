@@ -137,6 +137,26 @@ To check if files are already formatted:
 sleek --check "queries/*.sql"
 ```
 
+## Testing
+
+Sleek includes comprehensive integration tests that verify the CLI functionality works correctly.
+
+### Running Tests
+
+To run all tests:
+
+```bash
+cargo test
+```
+
+To run only integration tests:
+
+```bash
+cargo test --test integration_tests
+```
+
+All tests use temporary files and the actual compiled binary to ensure real-world behavior is tested.
+
 ## License
 
 This project is available under the MIT License.
