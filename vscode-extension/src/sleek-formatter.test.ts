@@ -1,5 +1,5 @@
 import { test, describe } from 'node:test';
-import { strictEqual, ok } from 'node:assert';
+import { strictEqual } from 'node:assert';
 import { 
     buildCommand, 
     validateConfig, 
