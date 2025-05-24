@@ -1,0 +1,18 @@
+{
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": [
+      ".github/workflows/*.yml",
+      ".github/workflows/*.yaml"
+    ]
+  },
+  "github-actions.workflows.pinned.workflows": [
+    ".github/workflows/rust.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/security.yml"
+  ],
+  "act.executable": "act",
+  "act.directory": ".",
+  "files.associations": {
+    ".actrc": "properties"
+  }
+} 

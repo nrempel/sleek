@@ -1,0 +1,21 @@
+# Act configuration optimized for Apple Silicon (M3)
+# Use proper Ubuntu images with required tools
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P macos-latest=catthehacker/ubuntu:act-latest
+-P windows-latest=catthehacker/ubuntu:act-latest
+
+# Container architecture for Apple Silicon
+--container-architecture linux/amd64
+
+# Resource limits for M3 performance
+--container-options "--memory=4g"
+--container-options "--cpus=2"
+
+# Reduce verbosity (faster)
+# --verbose
+
+# Bind workspace to container
+--bind
+
+# Use local cache directory
+--artifact-server-path /tmp/act-artifacts 
