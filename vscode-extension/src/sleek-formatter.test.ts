@@ -25,7 +25,7 @@ describe('Sleek Formatter', () => {
 
             const result = buildCommand(config);
             
-            strictEqual(result, 'sleek --indent-spaces 4 --uppercase true --lines-between-queries 2 --trailing-newline false');
+            strictEqual(result, '"sleek" --indent-spaces 4 --uppercase true --lines-between-queries 2 --trailing-newline false');
         });
 
         test('builds command with custom path', () => {
@@ -39,7 +39,21 @@ describe('Sleek Formatter', () => {
 
             const result = buildCommand(config);
             
-            strictEqual(result, '/usr/local/bin/sleek --indent-spaces 2 --uppercase false --lines-between-queries 1 --trailing-newline true');
+            strictEqual(result, '"/usr/local/bin/sleek" --indent-spaces 2 --uppercase false --lines-between-queries 1 --trailing-newline true');
+        });
+
+        test('properly quotes executable paths with spaces', () => {
+            const config: SleekConfig = {
+                executable: '/Users/user/Library/Application Support/Cursor/sleek',
+                indentSpaces: 4,
+                uppercase: true,
+                linesBetweenQueries: 2,
+                trailingNewline: false
+            };
+
+            const result = buildCommand(config);
+            
+            strictEqual(result, '"/Users/user/Library/Application Support/Cursor/sleek" --indent-spaces 4 --uppercase true --lines-between-queries 2 --trailing-newline false');
         });
     });
 

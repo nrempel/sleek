@@ -8,6 +8,7 @@ import * as fs from 'node:fs';
 import * as https from 'node:https';
 import { exec } from 'node:child_process';
 import { parseVersionFromOutput, isNewerVersion, parseReleaseTag, extractReleaseNotes, formatVersionDisplay } from './version-manager';
+import { selectSleekExecutable } from './sleek-executable-selector';
 
 export interface ReleaseAsset {
     name: string;
@@ -40,26 +41,57 @@ export class SleekDownloader {
 
     /**
      * Get current installed version of Sleek
+     * If executablePath is provided, check that specific executable
+     * If not provided, use prioritization logic to find best available version
      */
     async getCurrentVersion(executablePath?: string): Promise<string | null> {
-        const testPath = executablePath || 'sleek';
-        
-        try {
-            const output = await this.getVersionOutput(testPath);
-            return parseVersionFromOutput(output);
-        } catch {
-            // Try downloaded version
-            const downloadedPath = this.getSleekPath();
-            if (fs.existsSync(downloadedPath)) {
-                try {
-                    const output = await this.getVersionOutput(downloadedPath);
-                    return parseVersionFromOutput(output);
-                } catch {
-                    return null;
-                }
+        // If specific executable path is provided, check only that one
+        if (executablePath) {
+            try {
+                await this.testSleekExecutable(executablePath);
+                const output = await this.getVersionOutput(executablePath);
+                return parseVersionFromOutput(output);
+            } catch {
+                return null;
             }
+        }
+        
+        // If no specific path provided, use prioritization logic
+        const downloadedPath = this.getSleekPath();
+        
+        // Check if downloaded version exists
+        let downloadedVersion: string | null = null;
+        if (fs.existsSync(downloadedPath)) {
+            try {
+                await this.testSleekExecutable(downloadedPath);
+                const output = await this.getVersionOutput(downloadedPath);
+                downloadedVersion = parseVersionFromOutput(output);
+            } catch {
+                // Downloaded version is corrupted, remove it
+                fs.unlinkSync(downloadedPath);
+            }
+        }
+        
+        // Check default configured version
+        let configuredVersion: string | null = null;
+        try {
+            await this.testSleekExecutable('sleek');
+            const output = await this.getVersionOutput('sleek');
+            configuredVersion = parseVersionFromOutput(output);
+        } catch {
+            // Configured version not available
+        }
+        
+        // If neither is available
+        if (!downloadedVersion && !configuredVersion) {
             return null;
         }
+        
+        // Use same prioritization logic as isSleekAvailable
+        const selection = selectSleekExecutable(downloadedPath, downloadedVersion, 'sleek', configuredVersion);
+        
+        // Return the version of the selected executable
+        return selection.path === downloadedPath ? downloadedVersion : configuredVersion;
     }
 
     /**
@@ -80,10 +112,10 @@ export class SleekDownloader {
     /**
      * Check for available updates
      */
-    async checkForUpdates(currentVersion?: string): Promise<{ hasUpdate: boolean; current?: string; latest?: string; releaseInfo?: ReleaseInfo }> {
+    async checkForUpdates(currentVersion?: string, executablePath?: string): Promise<{ hasUpdate: boolean; current?: string; latest?: string; releaseInfo?: ReleaseInfo }> {
         try {
             const releaseInfo = await this.getLatestReleaseInfo();
-            const current = currentVersion || await this.getCurrentVersion();
+            const current = currentVersion || await this.getCurrentVersion(executablePath);
             
             if (!current) {
                 return { 
@@ -158,29 +190,41 @@ export class SleekDownloader {
 
     /**
      * Check if Sleek is available (either in PATH or downloaded)
+     * Prioritizes downloaded version if it's newer than configured version
      */
     async isSleekAvailable(executablePath?: string): Promise<{ available: boolean; path: string }> {
-        // First try user-configured path or 'sleek' in PATH
         const testPath = executablePath || 'sleek';
+        const downloadedPath = this.getSleekPath();
         
-        try {
-            await this.testSleekExecutable(testPath);
-            return { available: true, path: testPath };
-        } catch {
-            // Try our downloaded version
-            const downloadedPath = this.getSleekPath();
-            if (fs.existsSync(downloadedPath)) {
-                try {
-                    await this.testSleekExecutable(downloadedPath);
-                    return { available: true, path: downloadedPath };
-                } catch {
-                    // Downloaded version is corrupted, remove it
-                    fs.unlinkSync(downloadedPath);
-                }
+        // Check if downloaded version exists
+        let downloadedVersion: string | null = null;
+        if (fs.existsSync(downloadedPath)) {
+            try {
+                await this.testSleekExecutable(downloadedPath);
+                downloadedVersion = await this.getCurrentVersion(downloadedPath);
+            } catch {
+                // Downloaded version is corrupted, remove it
+                fs.unlinkSync(downloadedPath);
             }
         }
-
-        return { available: false, path: '' };
+        
+        // Check configured version
+        let configuredVersion: string | null = null;
+        try {
+            await this.testSleekExecutable(testPath);
+            configuredVersion = await this.getCurrentVersion(testPath);
+        } catch {
+            // Configured version not available
+        }
+        
+        // If neither is available
+        if (!downloadedVersion && !configuredVersion) {
+            return { available: false, path: '' };
+        }
+        
+        // Use pure function to determine which executable to use
+        const selection = selectSleekExecutable(downloadedPath, downloadedVersion, testPath, configuredVersion);
+        return { available: true, path: selection.path };
     }
 
     /**
