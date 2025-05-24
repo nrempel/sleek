@@ -1,0 +1,1 @@
+select id, name, email from users where id in (select user_id from orders where total > 100) and status = 'active' 

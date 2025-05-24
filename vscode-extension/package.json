@@ -1,0 +1,164 @@
+{
+    "name": "sleek-sql-formatter",
+    "displayName": "Sleek SQL Formatter",
+    "description": "Format SQL files using the Sleek CLI tool with customizable options",
+    "version": "0.1.0",
+    "publisher": "nrempel",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nrempel/sleek.git"
+    },
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "categories": [
+        "Formatters",
+        "Other"
+    ],
+    "keywords": [
+        "sql",
+        "format",
+        "formatter",
+        "sleek",
+        "database"
+    ],
+    "activationEvents": [
+        "onLanguage:sql"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "sleek.formatDocument",
+                "title": "Format Document",
+                "category": "Sleek"
+            },
+            {
+                "command": "sleek.formatSelection",
+                "title": "Format Selection",
+                "category": "Sleek"
+            },
+            {
+                "command": "sleek.checkFormatting",
+                "title": "Check Formatting",
+                "category": "Sleek"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "sleek.formatDocument",
+                    "when": "editorLangId == sql"
+                },
+                {
+                    "command": "sleek.formatSelection",
+                    "when": "editorLangId == sql && editorHasSelection"
+                },
+                {
+                    "command": "sleek.checkFormatting",
+                    "when": "editorLangId == sql"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "sleek.formatDocument",
+                    "when": "editorLangId == sql",
+                    "group": "1_modification@1"
+                },
+                {
+                    "command": "sleek.formatSelection",
+                    "when": "editorLangId == sql && editorHasSelection",
+                    "group": "1_modification@2"
+                }
+            ]
+        },
+        "keybindings": [
+            {
+                "command": "sleek.formatDocument",
+                "key": "shift+alt+f",
+                "when": "editorLangId == sql"
+            }
+        ],
+        "configuration": {
+            "title": "Sleek SQL Formatter",
+            "properties": {
+                "sleek.executable": {
+                    "type": "string",
+                    "default": "sleek",
+                    "description": "Path to the sleek executable. If not in PATH, provide full path."
+                },
+                "sleek.indentSpaces": {
+                    "type": "number",
+                    "default": 4,
+                    "minimum": 1,
+                    "maximum": 16,
+                    "description": "Number of spaces to use for indentation"
+                },
+                "sleek.uppercase": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Convert reserved keywords to UPPERCASE"
+                },
+                "sleek.linesBetweenQueries": {
+                    "type": "number",
+                    "default": 2,
+                    "minimum": 0,
+                    "maximum": 10,
+                    "description": "Number of line breaks to insert after each query"
+                },
+                "sleek.trailingNewline": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Ensure files end with a trailing newline"
+                },
+                "sleek.formatOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically format SQL files on save"
+                },
+                "sleek.formatOnPaste": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically format SQL code when pasting"
+                }
+            }
+        },
+        "languages": [
+            {
+                "id": "sql",
+                "extensions": [
+                    ".sql"
+                ],
+                "aliases": [
+                    "SQL",
+                    "sql"
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.74.0",
+        "@types/node": "16.x",
+        "@typescript-eslint/eslint-plugin": "^5.45.0",
+        "@typescript-eslint/parser": "^5.45.0",
+        "eslint": "^8.28.0",
+        "typescript": "^4.9.4",
+        "@vscode/vsce": "^2.15.0"
+    },
+    "author": "Nicholas Rempel <nbrempel@gmail.com>",
+    "license": "MIT",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/nrempel/sleek/issues"
+    },
+    "homepage": "https://github.com/nrempel/sleek#readme"
+}
