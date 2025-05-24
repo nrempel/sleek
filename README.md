@@ -47,6 +47,7 @@ WHERE
 - Supports glob patterns, allowing you to format multiple files and patterns
 - Check whether your SQL files are already formatted without altering them with
   the `--check` flag
+- Automatically adds trailing newlines to formatted output (can be disabled with `--trailing-newline=false`)
 
 ## Installation
 
@@ -70,40 +71,33 @@ cargo install sleek
 ## Usage
 
 ```bash
-sleek [FLAGS] [OPTIONS] <file_paths>...
+sleek [OPTIONS] [FILE]...
 ```
 
 ### Arguments
 
-- `<file_paths>...`: File path(s) to format, supports glob patterns. If no file
-  paths are provided, reads from stdin.
-
-### Flags
-
-- `-c`, `--check`: Check if the code is already formatted. If not, it will exit
-  with an error message.
-- `-h`, `--help`: Prints help information.
-- `-V`, `--version`: Prints version information.
+- `[FILE]...`: File path(s) to format, supports glob patterns. If no file paths are provided, reads from stdin.
 
 ### Options
 
-- `-i`, `--indent_spaces <indent_spaces>`: Set the number of spaces to use for
-  indentation (default: 4).
-- `-U`, `--uppercase <uppercase>`: Change reserved keywords to ALL CAPS
-  (default: true).
-- `-l`, `--lines_between_queries <lines_between_queries>`: Set the number of
-  line breaks after a query (default: 2).
+- `-c`, `--check`: Check if the code is already formatted without modifying files
+- `-i`, `--indent-spaces <NUM>`: Number of spaces to use for indentation (default: 4)
+- `-U`, `--uppercase <BOOL>`: Convert reserved keywords to UPPERCASE [possible values: true, false]
+- `-l`, `--lines-between-queries <NUM>`: Number of line breaks to insert after each query (default: 2)
+- `-n`, `--trailing-newline`: Ensure files end with a trailing newline (default: true)
+- `-h`, `--help`: Print help
+- `-V`, `--version`: Print version
 
 ## Examples
 
 Format a query from stdin:
 
 ```bash
-> echo "select * from users" | sleek --uppercase
+> echo "select * from users" | sleek --uppercase true
 SELECT
     *
 FROM
-    user
+    users
 ```
 
 To check if a query is formatted correctly from stdin:
@@ -128,13 +122,19 @@ sleek "queries/*.sql"
 To format files with custom options:
 
 ```bash
-sleek --indent_spaces 2 --uppercase false "queries/*.sql"
+sleek --indent-spaces 2 --uppercase false "queries/*.sql"
 ```
 
 To check if files are already formatted:
 
 ```bash
 sleek --check "queries/*.sql"
+```
+
+To format files without trailing newlines:
+
+```bash
+sleek --trailing-newline=false "queries/*.sql"
 ```
 
 ## Testing
