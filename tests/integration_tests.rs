@@ -267,3 +267,36 @@ fn test_left_outer_join_formatting_works_correctly() {
         "LEFT OUTER JOIN should be kept together on the same line"
     );
 }
+
+#[test]
+fn test_issue_60_comma_separated_lists_current_behavior() {
+    // Test for GitHub issue #60: Enhancement request for more compact formatting
+    // Currently, sleek breaks comma-separated items onto separate lines
+    let input = "SELECT id, name, email, status FROM users, orders WHERE users.id = orders.user_id AND status = 'active'";
+    let output = run_sleek_with_stdin(&[], input.as_bytes());
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    println!("Current behavior:\n{}", stdout);
+
+    // Document current behavior: comma-separated items are on separate lines
+    assert!(
+        stdout.contains("SELECT\n    id,\n    name,\n    email,"),
+        "Currently SELECT columns are formatted on separate lines"
+    );
+    assert!(
+        stdout.contains("FROM\n    users,\n    orders"),
+        "Currently FROM tables are formatted on separate lines"
+    );
+    assert!(
+        stdout.contains("WHERE\n    users.id = orders.user_id\n    AND"),
+        "Currently WHERE conditions use line breaks with AND"
+    );
+
+    // This test documents the current behavior and will help when implementing
+    // the enhancement request for more compact formatting like:
+    // SELECT id, name, email, status
+    // FROM users, orders
+    // WHERE users.id = orders.user_id AND status = 'active'
+}
