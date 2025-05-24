@@ -81,7 +81,7 @@ enum Error {
     #[error("Failed to read glob pattern: {0}")]
     Glob(#[from] glob::GlobError),
     #[error("Failed to read glob pattern: {0}")]
-    Patter(#[from] glob::PatternError),
+    Pattern(#[from] glob::PatternError),
     #[error("Input is not formatted correctly. Run without --check to format the input.")]
     Check,
     #[error("Failed to append a trailing newline to the formatted SQL.")]
