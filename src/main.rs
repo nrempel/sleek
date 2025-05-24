@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::process;
 use std::{fs, io};
 
-use clap::{Parser, crate_version};
+use clap::Parser;
 use glob::glob;
 use sqlformat::{FormatOptions, Indent, QueryParams, format};
 use thiserror::Error;
@@ -89,24 +89,30 @@ enum Error {
 }
 
 #[derive(Parser)]
-#[clap(version = crate_version!())]
+#[command(author, version, about, long_about = None)]
 struct Options {
     /// File path(s) to format, supports glob patterns.
     /// If no file paths are provided, reads from stdin.
+    #[arg(value_name = "FILE")]
     file_paths: Vec<String>,
-    /// Check if the code is already formatted
-    #[clap(short, long)]
+
+    /// Check if the code is already formatted without modifying files
+    #[arg(short, long)]
     check: bool,
-    /// Set the number of spaces to use for indentation
-    #[clap(short, long, default_value = "4")]
+
+    /// Number of spaces to use for indentation
+    #[arg(short, long, value_name = "NUM", default_value = "4")]
     indent_spaces: u8,
-    /// Change reserved keywords to ALL CAPS
-    #[clap(short = 'U', long)]
+
+    /// Convert reserved keywords to UPPERCASE
+    #[arg(short = 'U', long, value_name = "BOOL")]
     uppercase: Option<bool>,
-    /// Set the number of line breaks after a query
-    #[clap(short, long, default_value = "2")]
+
+    /// Number of line breaks to insert after each query
+    #[arg(short, long, value_name = "NUM", default_value = "2")]
     lines_between_queries: u8,
-    /// Enforce a tailing newline at the end of the file
-    #[clap(short = 'n', long, default_value = "false")]
+
+    /// Ensure files end with a trailing newline
+    #[arg(short = 'n', long)]
     trailing_newline: bool,
 }
