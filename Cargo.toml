@@ -1,13 +1,14 @@
 [package]
 name = "sleek"
 version = "0.3.0"
-edition = "2021"
+edition = "2024"
 description = "Sleek is a CLI tool for formatting SQL files."
 authors = ["Nicholas Rempel <nbrempel@gmail.com>"]
 license = "MIT"
 keywords = ["sql", "format", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 repository = "https://github.com/nrempel/sleek"
+rust-version = "1.85"
 
 
 [dependencies]
