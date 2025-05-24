@@ -56,7 +56,7 @@ fn main() {
                             return Ok(());
                         }
 
-                        fs::File::create(&path)?.write_all(formatted.as_bytes())?;
+                        fs::write(&path, formatted)?;
                     }
                 }
             }
