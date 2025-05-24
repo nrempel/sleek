@@ -175,7 +175,7 @@ fn test_custom_indent_spaces() {
     stdin
         .write_all(b"select * from users")
         .expect("Failed to write to stdin");
-    drop(stdin);
+    let _ = stdin;
 
     let output = child.wait_with_output().expect("Failed to get output");
     assert!(output.status.success());
@@ -201,7 +201,7 @@ fn test_uppercase_flag() {
     stdin
         .write_all(b"select * from users")
         .expect("Failed to write to stdin");
-    drop(stdin);
+    let _ = stdin;
 
     let output = child.wait_with_output().expect("Failed to get output");
     assert!(output.status.success());
