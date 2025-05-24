@@ -429,17 +429,24 @@ fn test_boolean_flags_work_with_files() {
 fn test_old_flag_syntax_should_fail() {
     // Test that the old flag syntax (without explicit values) should fail
     // This ensures we're enforcing the new explicit boolean approach
-    let input = "select * from users";
 
     // Test old --uppercase flag (without value) should fail
-    let output = run_sleek_with_stdin(&["--uppercase"], input.as_bytes());
+    // Don't use stdin since the command will fail before reading it
+    let output = sleek_command()
+        .arg("--uppercase")
+        .output()
+        .expect("Failed to execute sleek");
     assert!(
         !output.status.success(),
         "--uppercase without explicit value should fail"
     );
 
     // Test old --trailing-newline flag (without value) should fail
-    let output = run_sleek_with_stdin(&["--trailing-newline"], input.as_bytes());
+    // Don't use stdin since the command will fail before reading it
+    let output = sleek_command()
+        .arg("--trailing-newline")
+        .output()
+        .expect("Failed to execute sleek");
     assert!(
         !output.status.success(),
         "--trailing-newline without explicit value should fail"
