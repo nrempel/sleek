@@ -10,10 +10,13 @@ A VSCode extension that formats SQL files using the [Sleek CLI tool](https://git
 - **Status bar indicator** showing format status
 - **Configurable options** for indentation, casing, and spacing
 - **Format on save/paste** (optional)
+- **Automatic CLI download** - downloads Sleek CLI automatically if not found
 
 ## Requirements
 
-Install the Sleek CLI tool:
+The extension will automatically download the Sleek CLI tool when needed.
+
+Alternatively, you can install it manually:
 
 ```bash
 cargo install sleek
@@ -22,7 +25,7 @@ cargo install sleek
 ## Usage
 
 1. Open a `.sql` file
-2. Press `Shift+Alt+F` to format
+2. Press `Shift+Alt+F` to format (extension will download Sleek CLI if needed)
 3. Or use Command Palette → "Sleek: Format Document"
 
 ## Configuration

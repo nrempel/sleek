@@ -1,8 +1,14 @@
 import * as vscode from 'vscode';
 import { exec } from 'node:child_process';
 import { buildCommand, validateConfig, parseError, type SleekConfig } from './sleek-formatter';
+import { SleekDownloader } from './sleek-downloader';
 
 export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
+    private downloader: SleekDownloader;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.downloader = new SleekDownloader(context);
+    }
     
     private getConfig(): SleekConfig {
         const config = vscode.workspace.getConfiguration('sleek');
@@ -16,9 +22,38 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
         });
     }
 
-    async formatSQL(text: string): Promise<string> {
+    private async ensureSleekAvailable(): Promise<string> {
         const config = this.getConfig();
-        const command = buildCommand(config);
+        const result = await this.downloader.isSleekAvailable(config.executable);
+        
+        if (result.available) {
+            return result.path;
+        }
+
+        // Ask user if they want to download Sleek
+        const choice = await vscode.window.showInformationMessage(
+            'Sleek CLI not found. Would you like to download it automatically?',
+            'Download',
+            'Cancel'
+        );
+
+        if (choice === 'Download') {
+            try {
+                return await this.downloader.downloadSleek();
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                vscode.window.showErrorMessage(`Failed to download Sleek: ${errorMessage}`);
+                throw error;
+            }
+        } else {
+            throw new Error('Sleek CLI is required. Please install manually with: cargo install sleek');
+        }
+    }
+
+    async formatSQL(text: string): Promise<string> {
+        const sleekPath = await this.ensureSleekAvailable();
+        const config = this.getConfig();
+        const command = buildCommand({ ...config, executable: sleekPath });
 
         return new Promise((resolve, reject) => {
             const process = exec(command, {
@@ -47,74 +82,65 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
         });
     }
 
-    async checkFormatting(text: string): Promise<boolean> {
-        const config = this.getConfig();
-        const command = `${config.executable} --check`;
-
-        return new Promise((resolve, reject) => {
-            const process = exec(command, {
-                encoding: 'utf8',
-                timeout: 30000 // 30 second timeout
-            }, (error, stdout, stderr) => {
-                if (error) {
-                    const execError = error as { code?: string | number; signal?: string; message: string };
-                    if (execError.code === 1) {
-                        resolve(false); // Not formatted
-                    } else if (execError.signal === 'SIGTERM') {
-                        reject(new Error('Sleek check timed out. The SQL might be too large or complex.'));
-                    } else {
-                        reject(new Error(`Sleek check failed: ${execError.message}`));
-                    }
-                    return;
-                }
-                resolve(true); // Already formatted
-            });
-
-            if (process.stdin) {
-                process.stdin.write(text);
-                process.stdin.end();
-            } else {
-                reject(new Error('Failed to write to sleek process stdin'));
-            }
-        });
+    async checkFormatting(document: vscode.TextDocument): Promise<boolean> {
+        try {
+            const sleekPath = await this.ensureSleekAvailable();
+            const formatted = await this.formatSQL(document.getText());
+            return formatted.trim() === document.getText().trim();
+        } catch {
+            return false;
+        }
     }
 
-    async provideDocumentFormattingEdits(
-        document: vscode.TextDocument,
-        options: vscode.FormattingOptions,
-        token: vscode.CancellationToken
-    ): Promise<vscode.TextEdit[]> {
-        const text = document.getText();
-        
+    provideDocumentFormattingEdits(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
+        return this.formatDocument(document);
+    }
+
+    provideDocumentRangeFormattingEdits(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.TextEdit[]> {
+        return this.formatRange(document, range);
+    }
+
+    private async formatDocument(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
         try {
-            const formatted = await this.formatSQL(text);
+            const formatted = await this.formatSQL(document.getText());
             const fullRange = new vscode.Range(
                 document.positionAt(0),
-                document.positionAt(text.length)
+                document.positionAt(document.getText().length)
             );
             return [vscode.TextEdit.replace(fullRange, formatted)];
-        } catch (error: unknown) {
+        } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             vscode.window.showErrorMessage(`Sleek formatting failed: ${errorMessage}`);
             return [];
         }
     }
 
-    async provideDocumentRangeFormattingEdits(
-        document: vscode.TextDocument,
-        range: vscode.Range,
-        options: vscode.FormattingOptions,
-        token: vscode.CancellationToken
-    ): Promise<vscode.TextEdit[]> {
-        const text = document.getText(range);
-        
+    private async formatRange(document: vscode.TextDocument, range: vscode.Range): Promise<vscode.TextEdit[]> {
         try {
-            const formatted = await this.formatSQL(text);
+            const selectedText = document.getText(range);
+            const formatted = await this.formatSQL(selectedText);
             return [vscode.TextEdit.replace(range, formatted)];
-        } catch (error: unknown) {
+        } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             vscode.window.showErrorMessage(`Sleek formatting failed: ${errorMessage}`);
             return [];
+        }
+    }
+
+    async downloadSleek(): Promise<void> {
+        try {
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: 'Installing Sleek CLI...',
+                cancellable: false
+            }, async () => {
+                await this.downloader.downloadSleek();
+            });
+            
+            vscode.window.showInformationMessage('Sleek CLI installed successfully!');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            vscode.window.showErrorMessage(`Failed to install Sleek CLI: ${errorMessage}`);
         }
     }
 }
@@ -158,7 +184,7 @@ class SleekStatusBar {
         const editor = vscode.window.activeTextEditor;
         if (editor && editor.document.languageId === 'sql') {
             try {
-                const isFormatted = await this.formatter.checkFormatting(editor.document.getText());
+                const isFormatted = await this.formatter.checkFormatting(editor.document);
                 this.statusBarItem.text = isFormatted ? '$(check) Sleek' : '$(warning) Sleek';
                 this.statusBarItem.tooltip = isFormatted ? 'SQL is formatted' : 'SQL needs formatting';
             } catch (error) {
@@ -181,145 +207,77 @@ class SleekStatusBar {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    const formatter = new SleekFormatter();
+    const formatter = new SleekFormatter(context);
     const statusBar = new SleekStatusBar(formatter);
 
-    // Register document formatter
-    const formatterProvider = vscode.languages.registerDocumentFormattingEditProvider(
-        { scheme: 'file', language: 'sql' },
-        formatter
+    // Register formatting providers
+    context.subscriptions.push(
+        vscode.languages.registerDocumentFormattingEditProvider('sql', formatter),
+        vscode.languages.registerDocumentRangeFormattingEditProvider('sql', formatter)
     );
 
-    // Register range formatter
-    const rangeFormatterProvider = vscode.languages.registerDocumentRangeFormattingEditProvider(
-        { scheme: 'file', language: 'sql' },
-        formatter
-    );
-
-    // Command: Format Document
-    const formatDocumentCommand = vscode.commands.registerCommand('sleek.formatDocument', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'sql') {
-            vscode.window.showWarningMessage('Sleek: No active SQL document to format');
-            return;
-        }
-
-        try {
-            await vscode.commands.executeCommand('editor.action.formatDocument');
-            vscode.window.showInformationMessage('SQL formatted with Sleek');
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            vscode.window.showErrorMessage(`Sleek formatting failed: ${errorMessage}`);
-        }
-    });
-
-    // Command: Format Selection
-    const formatSelectionCommand = vscode.commands.registerCommand('sleek.formatSelection', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'sql') {
-            vscode.window.showWarningMessage('Sleek: No active SQL document to format');
-            return;
-        }
-
-        if (editor.selection.isEmpty) {
-            vscode.window.showWarningMessage('Sleek: No text selected');
-            return;
-        }
-
-        try {
-            await vscode.commands.executeCommand('editor.action.formatSelection');
-            vscode.window.showInformationMessage('SQL selection formatted with Sleek');
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            vscode.window.showErrorMessage(`Sleek formatting failed: ${errorMessage}`);
-        }
-    });
-
-    // Command: Check Formatting
-    const checkFormattingCommand = vscode.commands.registerCommand('sleek.checkFormatting', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'sql') {
-            vscode.window.showWarningMessage('Sleek: No active SQL document to check');
-            return;
-        }
-
-        try {
-            const isFormatted = await formatter.checkFormatting(editor.document.getText());
-            if (isFormatted) {
-                vscode.window.showInformationMessage('SQL is correctly formatted');
-            } else {
-                const action = await vscode.window.showWarningMessage(
-                    'SQL is not formatted correctly',
-                    'Format Now'
-                );
-                if (action === 'Format Now') {
-                    await vscode.commands.executeCommand('sleek.formatDocument');
-                }
-            }
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            vscode.window.showErrorMessage(`Sleek check failed: ${errorMessage}`);
-        }
-    });
-
-    // Format on save
-    const onSaveListener = vscode.workspace.onWillSaveTextDocument(async (event) => {
-        const config = vscode.workspace.getConfiguration('sleek');
-        if (config.get('formatOnSave', false) && event.document.languageId === 'sql') {
-            const edit = vscode.window.activeTextEditor;
-            if (edit && edit.document === event.document) {
+    // Register commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('sleek.formatDocument', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor && editor.document.languageId === 'sql') {
                 await vscode.commands.executeCommand('editor.action.formatDocument');
             }
-        }
-    });
+        }),
 
-    // Format on paste
-    const onPasteListener = vscode.workspace.onDidChangeTextDocument(async (event) => {
-        const config = vscode.workspace.getConfiguration('sleek');
-        if (config.get('formatOnPaste', false) && 
-            event.document.languageId === 'sql' && 
-            event.contentChanges.length > 0) {
-            
+        vscode.commands.registerCommand('sleek.formatSelection', async () => {
             const editor = vscode.window.activeTextEditor;
-            if (editor && editor.document === event.document) {
-                // Small delay to ensure paste operation is complete
-                setTimeout(async () => {
-                    try {
-                        await vscode.commands.executeCommand('editor.action.formatDocument');
-                    } catch (error) {
-                        // Silently ignore paste formatting errors
-                    }
-                }, 100);
+            if (editor && editor.document.languageId === 'sql') {
+                await vscode.commands.executeCommand('editor.action.formatSelection');
             }
-        }
-    });
+        }),
 
-    // Update status bar on active editor change
-    const onActiveEditorChangeListener = vscode.window.onDidChangeActiveTextEditor(() => {
-        statusBar.checkAndUpdateStatus();
-    });
+        vscode.commands.registerCommand('sleek.checkFormatting', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'sql') {
+                vscode.window.showWarningMessage('Sleek: No active SQL document to check');
+                return;
+            }
 
-    // Update status bar on document change
-    const onDocumentChangeListener = vscode.workspace.onDidChangeTextDocument((event) => {
-        const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document === event.document && event.document.languageId === 'sql') {
-            // Use debounced status updates for better performance
-            statusBar.debouncedStatusUpdate();
-        }
-    });
+            try {
+                const isFormatted = await formatter.checkFormatting(editor.document);
+                if (isFormatted) {
+                    vscode.window.showInformationMessage('SQL is correctly formatted');
+                } else {
+                    const action = await vscode.window.showWarningMessage(
+                        'SQL is not formatted correctly',
+                        'Format Now'
+                    );
+                    if (action === 'Format Now') {
+                        await vscode.commands.executeCommand('sleek.formatDocument');
+                    }
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                vscode.window.showErrorMessage(`Sleek check failed: ${errorMessage}`);
+            }
+        }),
 
-    // Register all disposables
+        vscode.commands.registerCommand('sleek.downloadCli', async () => {
+            await formatter.downloadSleek();
+        })
+    );
+
+    // Register status bar
+    context.subscriptions.push(statusBar);
+
+    // Update status when active editor changes
     context.subscriptions.push(
-        formatterProvider,
-        rangeFormatterProvider,
-        formatDocumentCommand,
-        formatSelectionCommand,
-        checkFormattingCommand,
-        onSaveListener,
-        onPasteListener,
-        onActiveEditorChangeListener,
-        onDocumentChangeListener,
-        statusBar
+        vscode.window.onDidChangeActiveTextEditor(() => {
+            statusBar.checkAndUpdateStatus();
+        })
+    );
+
+    // Update status when document is saved
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(() => {
+            statusBar.checkAndUpdateStatus();
+        })
     );
 
     // Initial status update
