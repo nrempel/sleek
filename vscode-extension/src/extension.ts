@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { exec } from 'node:child_process';
-import { buildCommand, validateConfig, parseError, type SleekConfig } from './sleek-formatter';
+import { buildCommand, validateConfig, parseError, isFormattingNeeded, type SleekConfig } from './sleek-formatter';
 import { SleekDownloader } from './sleek-downloader';
 
 export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
@@ -90,9 +90,9 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
 
     async checkFormatting(document: vscode.TextDocument): Promise<boolean> {
         try {
-            const sleekPath = await this.ensureSleekAvailable();
-            const formatted = await this.formatSQL(document.getText());
-            return formatted.trim() === document.getText().trim();
+            const original = document.getText();
+            const formatted = await this.formatSQL(original);
+            return !isFormattingNeeded(original, formatted);
         } catch {
             return false;
         }
