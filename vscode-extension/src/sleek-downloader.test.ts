@@ -103,8 +103,6 @@ describe('Sleek Downloader', () => {
             // executable to "sleek" would still report the downloaded version
             // instead of the actual PATH version
             
-            const specificPath = '/usr/local/bin/sleek';
-            
             // Expected: Only check the specific path, ignore prioritization
             // If the specific path works -> return its version
             // If the specific path fails -> return null
