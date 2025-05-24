@@ -1,5 +1,7 @@
 # Contributing to Sleek
 
+> For details on CI/CD, testing, and release, see [CI-CD.md](./CI-CD.md).
+
 Thanks for wanting to contribute! Here's how to get started.
 
 ## Quick Setup

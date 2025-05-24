@@ -71,15 +71,27 @@ WHERE
     STATUS = 'active'
 ```
 
-## Development
-
-```bash
-npm install
-npm run compile
-npm test           # Run tests
-npm run tdd        # Watch mode
-```
-
 ## License
 
 MIT
+
+---
+
+> **Contributing?**
+> For development, CI/CD, and testing details, see the [project CI-CD guide](../CI-CD.md).
+
+## Development
+
+To build and test the extension locally:
+
+```sh
+npm install
+npm run compile      # Build the extension
+npm test             # Run tests
+npm run tdd          # Watch mode for tests
+```
+
+- Source: `src/`
+- Tests:  `src/*.test.ts`
+- Build output: `out/`
+- Package: `npm run package` (creates `.vsix` file for manual install or publishing)
