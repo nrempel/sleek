@@ -24,7 +24,9 @@ export function parseVersionFromOutput(output: string): string | null {
  */
 export function parseVersion(versionString: string): VersionInfo | null {
     const match = versionString.match(/^(\d+)\.(\d+)\.(\d+)$/);
-    if (!match) return null;
+    if (!match) {
+        return null;
+    }
 
     const [, major, minor, patch] = match;
     return {
@@ -105,7 +107,9 @@ export function parseReleaseTag(tagName: string): string | null {
  * Get release notes summary from description
  */
 export function extractReleaseNotes(body: string, maxLength = 200): string {
-    if (!body || body.trim().length === 0) return 'No release notes available.';
+    if (!body || body.trim().length === 0) {
+        return 'No release notes available.';
+    }
     
     // Get first paragraph or sentence
     const firstParagraph = body.split('\n\n')[0];
