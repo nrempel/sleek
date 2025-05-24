@@ -1,4 +1,3 @@
-use std::fmt::Write as FmtWrite;
 use std::io::{Read, Write};
 use std::process;
 use std::{fs, io};
@@ -46,7 +45,7 @@ fn main() {
                             format(&input, &QueryParams::default(), &format_options);
 
                         if options.trailing_newline && !formatted.ends_with('\n') {
-                            writeln!(&mut formatted)?;
+                            formatted.push('\n');
                         }
 
                         if options.check {
