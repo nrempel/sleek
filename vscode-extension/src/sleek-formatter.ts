@@ -13,7 +13,7 @@ export interface SleekConfig {
 
 export function buildCommand(config: SleekConfig): string {
     return [
-        config.executable,
+        `"${config.executable}"`,
         '--indent-spaces', config.indentSpaces.toString(),
         '--uppercase', config.uppercase.toString(),
         '--lines-between-queries', config.linesBetweenQueries.toString(),

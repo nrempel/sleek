@@ -57,6 +57,11 @@
                 "command": "sleek.getVersionInfo",
                 "title": "Show Version Info",
                 "category": "Sleek"
+            },
+            {
+                "command": "sleek.debugInfo",
+                "title": "Debug Info",
+                "category": "Sleek"
             }
         ],
         "menus": {
@@ -81,6 +86,9 @@
                 },
                 {
                     "command": "sleek.getVersionInfo"
+                },
+                {
+                    "command": "sleek.debugInfo"
                 }
             ],
             "editor/context": [

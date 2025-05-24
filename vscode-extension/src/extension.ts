@@ -68,6 +68,7 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
                 timeout: 30000 // 30 second timeout
             }, (error, stdout, stderr) => {
                 if (error) {
+                    console.error('Command failed:', error.message);
                     reject(new Error(parseError(error.message)));
                     return;
                 }
@@ -156,7 +157,8 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
 
     async checkForUpdates(): Promise<void> {
         try {
-            const updateInfo = await this.downloader.checkForUpdates();
+            const config = this.getConfig();
+            const updateInfo = await this.downloader.checkForUpdates(undefined, config.executable);
             
             if (updateInfo.hasUpdate && updateInfo.current && updateInfo.latest && updateInfo.releaseInfo) {
                 const choice = await this.downloader.showUpdateNotification({
@@ -180,7 +182,8 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
 
     async getVersionInfo(): Promise<void> {
         try {
-            const currentVersion = await this.downloader.getCurrentVersion();
+            const config = this.getConfig();
+            const currentVersion = await this.downloader.getCurrentVersion(config.executable);
             const updateInfo = await this.downloader.checkForUpdates(currentVersion || undefined);
             
             if (currentVersion) {
@@ -194,6 +197,33 @@ export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vs
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             vscode.window.showErrorMessage(`Failed to get version info: ${errorMessage}`);
+        }
+    }
+
+    async debugInfo(): Promise<void> {
+        try {
+            const config = this.getConfig();
+            console.log('Current config:', config);
+            
+            const currentVersion = await this.downloader.getCurrentVersion(config.executable);
+            console.log('getCurrentVersion result:', currentVersion);
+            
+            const availableResult = await this.downloader.isSleekAvailable(config.executable);
+            console.log('isSleekAvailable result:', availableResult);
+            
+            const ensuredPath = await this.ensureSleekAvailable();
+            console.log('ensureSleekAvailable result:', ensuredPath);
+            
+            vscode.window.showInformationMessage(
+                `Debug Info:
+Config executable: ${config.executable}
+Current version: ${currentVersion}
+Available path: ${availableResult.path}
+Ensured path: ${ensuredPath}`
+            );
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            vscode.window.showErrorMessage(`Debug failed: ${errorMessage}`);
         }
     }
 }
@@ -321,6 +351,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('sleek.getVersionInfo', async () => {
             await formatter.getVersionInfo();
+        }),
+
+        vscode.commands.registerCommand('sleek.debugInfo', async () => {
+            await formatter.debugInfo();
         })
     );
 
@@ -399,7 +433,9 @@ function scheduleUpdateCheck(formatter: SleekFormatter, context: vscode.Extensio
 
         if (now - lastCheck > checkInterval) {
             try {
-                const updateInfo = await formatter.downloader.checkForUpdates();
+                const config = vscode.workspace.getConfiguration('sleek');
+                const executablePath = config.get('executable', 'sleek');
+                const updateInfo = await formatter.downloader.checkForUpdates(undefined, executablePath);
                 await context.globalState.update(lastCheckKey, now);
 
                 if (updateInfo.hasUpdate && updateInfo.current && updateInfo.latest && updateInfo.releaseInfo) {
