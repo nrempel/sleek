@@ -25,16 +25,25 @@ fn run(options: Options) -> Result<(), Error> {
     };
 
     match options.file_paths.is_empty() {
-        true => process_stdin(&format_options, options.check),
+        true => process_stdin(&format_options, options.check, &options),
         false => process_files(&options.file_paths, &format_options, &options),
     }
 }
 
-fn process_stdin(format_options: &FormatOptions, check_only: bool) -> Result<(), Error> {
+fn process_stdin(
+    format_options: &FormatOptions,
+    check_only: bool,
+    options: &Options,
+) -> Result<(), Error> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
-    let formatted = format(&input, &QueryParams::default(), format_options);
+    let mut formatted = format(&input, &QueryParams::default(), format_options);
+
+    if options.trailing_newline && !formatted.ends_with('\n') {
+        formatted.push('\n');
+    }
+
     if check_only {
         if input != formatted {
             return Err(Error::Check);

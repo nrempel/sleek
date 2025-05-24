@@ -70,7 +70,7 @@ fn test_format_from_stdin() {
 fn test_check_flag_formatted_input() {
     let output = run_sleek_with_stdin(
         &["--check"],
-        b"SELECT\n    *\nFROM\n    users\nWHERE\n    id = 1",
+        b"SELECT\n    *\nFROM\n    users\nWHERE\n    id = 1\n",
     );
     assert!(output.status.success());
 }
