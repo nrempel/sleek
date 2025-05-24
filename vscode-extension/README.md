@@ -11,6 +11,8 @@ A VSCode extension that formats SQL files using the [Sleek CLI tool](https://git
 - **Configurable options** for indentation, casing, and spacing
 - **Format on save/paste** (optional)
 - **Automatic CLI download** - downloads Sleek CLI automatically if not found
+- **Auto-update checking** - checks for Sleek CLI updates every 24 hours
+- **Version management** - view current version and update notifications
 
 ## Requirements
 
@@ -45,6 +47,9 @@ Available settings in VSCode preferences:
 - `Sleek: Format Document` - Format entire SQL file
 - `Sleek: Format Selection` - Format selected SQL text
 - `Sleek: Check Formatting` - Check if SQL is properly formatted
+- `Sleek: Download CLI` - Manually download/update Sleek CLI
+- `Sleek: Check for Updates` - Check for available CLI updates
+- `Sleek: Show Version Info` - Display current Sleek CLI version
 
 ## Example
 

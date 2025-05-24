@@ -347,6 +347,42 @@ export function activate(context: vscode.ExtensionContext) {
     // Periodic update checking (once per day)
     scheduleUpdateCheck(formatter, context);
 
+    // Format on save functionality
+    context.subscriptions.push(
+        vscode.workspace.onWillSaveTextDocument(async (event) => {
+            const config = vscode.workspace.getConfiguration('sleek');
+            if (config.get('formatOnSave', false) && event.document.languageId === 'sql') {
+                const edit = vscode.window.activeTextEditor;
+                if (edit && edit.document === event.document) {
+                    await vscode.commands.executeCommand('editor.action.formatDocument');
+                }
+            }
+        })
+    );
+
+    // Format on paste functionality  
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument(async (event) => {
+            const config = vscode.workspace.getConfiguration('sleek');
+            if (config.get('formatOnPaste', false) && 
+                event.document.languageId === 'sql' && 
+                event.contentChanges.length > 0) {
+                
+                const editor = vscode.window.activeTextEditor;
+                if (editor && editor.document === event.document) {
+                    // Small delay to ensure paste operation is complete
+                    setTimeout(async () => {
+                        try {
+                            await vscode.commands.executeCommand('editor.action.formatDocument');
+                        } catch (error) {
+                            // Silently ignore paste formatting errors
+                        }
+                    }, 100);
+                }
+            }
+        })
+    );
+
     console.log('Sleek SQL Formatter extension activated');
 }
 
