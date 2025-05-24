@@ -220,3 +220,50 @@ fn test_nonexistent_file() {
     // Glob patterns that don't match any files succeed (no-op)
     assert!(output.status.success());
 }
+
+#[test]
+fn test_full_outer_join_formatting() {
+    // Test for GitHub issue #81: FULL OUTER JOIN causes confusion
+    let input = "select * from users u full outer join departments d on u.deptid = d.id";
+    let output = run_sleek_with_stdin(&[], input.as_bytes());
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // The bug: Currently formats incorrectly as "users u FULL"
+    // Should format as separate lines with "FULL OUTER JOIN" together
+    println!("Actual output:\n{}", stdout);
+
+    // This assertion will likely fail, demonstrating the bug
+    assert!(
+        !stdout.contains("users u FULL"),
+        "FULL OUTER JOIN should not have FULL on the same line as table alias"
+    );
+
+    // This assertion shows what the correct formatting should be
+    assert!(
+        stdout.contains("FULL OUTER JOIN"),
+        "FULL OUTER JOIN should be kept together on the same line"
+    );
+}
+
+#[test]
+fn test_left_outer_join_formatting_works_correctly() {
+    // Verify that LEFT OUTER JOIN works correctly (as mentioned in the issue)
+    let input = "select * from users u left outer join departments d on u.deptid = d.id";
+    let output = run_sleek_with_stdin(&[], input.as_bytes());
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // LEFT OUTER JOIN should work correctly
+    assert!(
+        !stdout.contains("users u LEFT"),
+        "LEFT OUTER JOIN should not have LEFT on the same line as table alias"
+    );
+
+    assert!(
+        stdout.contains("LEFT OUTER JOIN"),
+        "LEFT OUTER JOIN should be kept together on the same line"
+    );
+}
