@@ -15,4 +15,4 @@ rust-version = "1.85"
 clap = { version = "4.5.4", features = ["derive", "cargo"] }
 glob = "0.3.1"
 sqlformat = "0.2.3"
-thiserror = "1.0.58"
+thiserror = "2.0.12"
