@@ -9,16 +9,23 @@ export interface SleekConfig {
     uppercase: boolean;
     linesBetweenQueries: number;
     trailingNewline: boolean;
+    check?: boolean;
 }
 
 export function buildCommand(config: SleekConfig): string {
-    return [
+    const parts = [
         `"${config.executable}"`,
         '--indent-spaces', config.indentSpaces.toString(),
         '--uppercase', config.uppercase.toString(),
         '--lines-between-queries', config.linesBetweenQueries.toString(),
         '--trailing-newline', config.trailingNewline.toString()
-    ].join(' ');
+    ];
+    
+    if (config.check) {
+        parts.push('--check');
+    }
+    
+    return parts.join(' ');
 }
 
 export function validateConfig(config: Partial<SleekConfig>): SleekConfig {

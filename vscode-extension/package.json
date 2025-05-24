@@ -2,7 +2,7 @@
     "name": "sleek-sql",
     "displayName": "Sleek SQL Formatter - Database Query Beautifier",
     "description": "Format and beautify SQL files with Sleek CLI - supports MySQL, PostgreSQL, SQLite, Oracle, MSSQL with customizable indentation and styling",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "publisher": "lucent",
     "repository": {
         "type": "git",
