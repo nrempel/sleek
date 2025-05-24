@@ -1,59 +1,24 @@
 import * as vscode from 'vscode';
 import { exec } from 'node:child_process';
+import { buildCommand, validateConfig, parseError, type SleekConfig } from './sleek-formatter';
 
-interface SleekConfig {
-    executable: string;
-    indentSpaces: number;
-    uppercase: boolean;
-    linesBetweenQueries: number;
-    trailingNewline: boolean;
-    formatOnSave: boolean;
-    formatOnPaste: boolean;
-}
-
-class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
+export class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
     
     private getConfig(): SleekConfig {
         const config = vscode.workspace.getConfiguration('sleek');
-        const indentSpaces = config.get('indentSpaces', 4);
-        const linesBetweenQueries = config.get('linesBetweenQueries', 2);
         
-        // Validate ranges as defined in package.json
-        if (indentSpaces < 1 || indentSpaces > 16) {
-            vscode.window.showWarningMessage('Invalid indent spaces value (must be 1-16). Using default (4).');
-        }
-        
-        if (linesBetweenQueries < 0 || linesBetweenQueries > 10) {
-            vscode.window.showWarningMessage('Invalid lines between queries value (must be 0-10). Using default (2).');
-        }
-        
-        return {
-            executable: config.get('executable', 'sleek'),
-            indentSpaces: Math.min(Math.max(indentSpaces, 1), 16),
-            uppercase: config.get('uppercase', true),
-            linesBetweenQueries: Math.min(Math.max(linesBetweenQueries, 0), 10),
-            trailingNewline: config.get('trailingNewline', false),
-            formatOnSave: config.get('formatOnSave', false),
-            formatOnPaste: config.get('formatOnPaste', false)
-        };
-    }
-
-    private buildSleekCommand(config: SleekConfig): string {
-        const flags = [
-            { name: '--indent-spaces', value: config.indentSpaces },
-            { name: '--uppercase', value: config.uppercase },
-            { name: '--lines-between-queries', value: config.linesBetweenQueries },
-            { name: '--trailing-newline', value: config.trailingNewline }
-        ];
-
-        const args = flags.map(flag => `${flag.name} ${flag.value}`);
-
-        return `${config.executable} ${args.join(' ')}`;
+        return validateConfig({
+            executable: config.get('executable'),
+            indentSpaces: config.get('indentSpaces'),
+            uppercase: config.get('uppercase'),
+            linesBetweenQueries: config.get('linesBetweenQueries'),
+            trailingNewline: config.get('trailingNewline')
+        });
     }
 
     async formatSQL(text: string): Promise<string> {
         const config = this.getConfig();
-        const command = this.buildSleekCommand(config);
+        const command = buildCommand(config);
 
         return new Promise((resolve, reject) => {
             const process = exec(command, {
@@ -62,14 +27,7 @@ class SleekFormatter implements vscode.DocumentFormattingEditProvider, vscode.Do
                 timeout: 30000 // 30 second timeout
             }, (error, stdout, stderr) => {
                 if (error) {
-                    const execError = error as { code?: string; signal?: string; message: string };
-                    if (execError.code === 'ENOENT') {
-                        reject(new Error(`Sleek executable not found at: ${config.executable}. Please install Sleek or update the path in settings.`));
-                    } else if (execError.signal === 'SIGTERM') {
-                        reject(new Error('Sleek formatting timed out. The SQL might be too large or complex.'));
-                    } else {
-                        reject(new Error(`Sleek formatting failed: ${execError.message}`));
-                    }
+                    reject(new Error(parseError(error.message)));
                     return;
                 }
 
