@@ -4,11 +4,19 @@
 [![GitHub Actions](https://github.com/nrempel/sleek/actions/workflows/rust.yml/badge.svg)](https://github.com/nrempel/sleek/actions)
 [![GitHub Releases](https://img.shields.io/github/release/nrempel/sleek.svg)](https://github.com/nrempel/sleek/releases)
 
+> **✨ Looking for a VS Code extension?**
+> Sleek is also available as a [VS Code extension](./vscode-extension) for SQL formatting! 🚀
+
 Sleek is a CLI tool for formatting SQL. It helps you maintain a consistent style
 across your SQL code, enhancing readability and productivity.
 
 The heavy lifting is done by the
 [sqlformat](https://github.com/shssoichiro/sqlformat-rs) crate.
+
+## VS Code Extension
+
+- See its [README](./vscode-extension/README.md) for usage and features.
+- See [CI/CD documentation](./vscode-extension/CI-CD.md) for build, test, and release automation details.
 
 ## Before and After
 
