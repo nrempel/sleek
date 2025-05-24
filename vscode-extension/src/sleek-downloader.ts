@@ -280,7 +280,7 @@ export class SleekDownloader {
                             body: string; 
                             assets: Array<{ name: string; browser_download_url: string }> 
                         });
-                    } catch (error) {
+                    } catch (_error) {
                         reject(new Error('Failed to parse GitHub API response'));
                     }
                 });

@@ -3,7 +3,7 @@
     "displayName": "Sleek SQL Formatter",
     "description": "Format SQL files using the Sleek CLI tool with customizable options",
     "version": "0.1.0",
-    "publisher": "nrempel",
+    "publisher": "lucent",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/nrempel/sleek.git"
@@ -170,13 +170,14 @@
         "package": "vsce package"
     },
     "devDependencies": {
-        "@types/node": "16.x",
+        "@eslint/js": "^9.27.0",
+        "@types/node": "^22.15.21",
         "@types/vscode": "^1.74.0",
-        "@typescript-eslint/eslint-plugin": "^5.45.0",
-        "@typescript-eslint/parser": "^5.45.0",
-        "@vscode/vsce": "^2.15.0",
-        "eslint": "^8.28.0",
-        "typescript": "^4.9.4"
+        "@typescript-eslint/eslint-plugin": "^8.32.1",
+        "@typescript-eslint/parser": "^8.32.1",
+        "@vscode/vsce": "^3.4.2",
+        "eslint": "^9.27.0",
+        "typescript": "^5.8.3"
     },
     "author": "Nicholas Rempel <nbrempel@gmail.com>",
     "license": "MIT",

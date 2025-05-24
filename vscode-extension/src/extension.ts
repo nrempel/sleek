@@ -240,7 +240,7 @@ class SleekStatusBar {
                 const isFormatted = await this.formatter.checkFormatting(editor.document);
                 this.statusBarItem.text = isFormatted ? '$(check) Sleek' : '$(warning) Sleek';
                 this.statusBarItem.tooltip = isFormatted ? 'SQL is formatted' : 'SQL needs formatting';
-            } catch (error) {
+            } catch (_error) {
                 this.statusBarItem.text = '$(error) Sleek';
                 this.statusBarItem.tooltip = 'Sleek check failed';
             }
@@ -374,7 +374,7 @@ export function activate(context: vscode.ExtensionContext) {
                     setTimeout(async () => {
                         try {
                             await vscode.commands.executeCommand('editor.action.formatDocument');
-                        } catch (error) {
+                        } catch (_error) {
                             // Silently ignore paste formatting errors
                         }
                     }, 100);
