@@ -7,10 +7,18 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as https from 'node:https';
 import { exec } from 'node:child_process';
+import { parseVersionFromOutput, isNewerVersion, parseReleaseTag, extractReleaseNotes, formatVersionDisplay } from './version-manager';
 
 export interface ReleaseAsset {
     name: string;
     download_url: string;
+}
+
+export interface ReleaseInfo {
+    version: string;
+    tagName: string;
+    releaseNotes: string;
+    assets: ReleaseAsset[];
 }
 
 export class SleekDownloader {
@@ -28,6 +36,124 @@ export class SleekDownloader {
         const platform = process.platform;
         const extension = platform === 'win32' ? '.exe' : '';
         return path.join(this.context.globalStorageUri.fsPath, `sleek${extension}`);
+    }
+
+    /**
+     * Get current installed version of Sleek
+     */
+    async getCurrentVersion(executablePath?: string): Promise<string | null> {
+        const testPath = executablePath || 'sleek';
+        
+        try {
+            const output = await this.getVersionOutput(testPath);
+            return parseVersionFromOutput(output);
+        } catch {
+            // Try downloaded version
+            const downloadedPath = this.getSleekPath();
+            if (fs.existsSync(downloadedPath)) {
+                try {
+                    const output = await this.getVersionOutput(downloadedPath);
+                    return parseVersionFromOutput(output);
+                } catch {
+                    return null;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Get version output from executable
+     */
+    private getVersionOutput(executablePath: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            exec(`"${executablePath}" --version`, { timeout: 5000 }, (error, stdout) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(stdout.trim());
+                }
+            });
+        });
+    }
+
+    /**
+     * Check for available updates
+     */
+    async checkForUpdates(currentVersion?: string): Promise<{ hasUpdate: boolean; current?: string; latest?: string; releaseInfo?: ReleaseInfo }> {
+        try {
+            const releaseInfo = await this.getLatestReleaseInfo();
+            const current = currentVersion || await this.getCurrentVersion();
+            
+            if (!current) {
+                return { 
+                    hasUpdate: true, 
+                    latest: releaseInfo.version, 
+                    releaseInfo 
+                };
+            }
+
+            const hasUpdate = isNewerVersion(current, releaseInfo.version);
+            return {
+                hasUpdate,
+                current,
+                latest: releaseInfo.version,
+                releaseInfo: hasUpdate ? releaseInfo : undefined
+            };
+        } catch (error) {
+            console.warn('Failed to check for updates:', error);
+            return { hasUpdate: false };
+        }
+    }
+
+    /**
+     * Show update notification to user
+     */
+    async showUpdateNotification(updateInfo: { current: string; latest: string; releaseInfo: ReleaseInfo }): Promise<'update' | 'later' | 'dismiss'> {
+        const { current, latest, releaseInfo } = updateInfo;
+        const displayVersion = formatVersionDisplay(current, latest);
+        
+        const message = `Sleek CLI update available: ${displayVersion}`;
+        const detail = releaseInfo.releaseNotes;
+        
+        const choice = await vscode.window.showInformationMessage(
+            message,
+            {
+                modal: false,
+                detail
+            },
+            'Update Now',
+            'Later',
+            'Dismiss'
+        );
+
+        switch (choice) {
+            case 'Update Now': return 'update';
+            case 'Later': return 'later';
+            default: return 'dismiss';
+        }
+    }
+
+    /**
+     * Get latest release information
+     */
+    private async getLatestReleaseInfo(): Promise<ReleaseInfo> {
+        const releaseData = await this.fetchReleaseData();
+        const version = parseReleaseTag(releaseData.tag_name);
+        
+        if (!version) {
+            throw new Error('Could not parse version from latest release');
+        }
+
+        return {
+            version,
+            tagName: releaseData.tag_name,
+            releaseNotes: extractReleaseNotes(releaseData.body),
+            assets: releaseData.assets.map((asset: { name: string; browser_download_url: string }) => ({
+                name: asset.name,
+                download_url: asset.browser_download_url
+            }))
+        };
     }
 
     /**
@@ -132,7 +258,11 @@ export class SleekDownloader {
     /**
      * Fetch release data from GitHub API
      */
-    private fetchReleaseData(): Promise<{ assets: Array<{ name: string; browser_download_url: string }> }> {
+    private fetchReleaseData(): Promise<{ 
+        tag_name: string; 
+        body: string; 
+        assets: Array<{ name: string; browser_download_url: string }> 
+    }> {
         return new Promise((resolve, reject) => {
             const url = `https://api.github.com/repos/${this.githubRepo}/releases/latest`;
             
@@ -145,7 +275,11 @@ export class SleekDownloader {
                 });
                 res.on('end', () => {
                     try {
-                        resolve(JSON.parse(data) as { assets: Array<{ name: string; browser_download_url: string }> });
+                        resolve(JSON.parse(data) as { 
+                            tag_name: string; 
+                            body: string; 
+                            assets: Array<{ name: string; browser_download_url: string }> 
+                        });
                     } catch (error) {
                         reject(new Error('Failed to parse GitHub API response'));
                     }
