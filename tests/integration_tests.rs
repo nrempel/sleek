@@ -147,7 +147,7 @@ fn test_trailing_newline_flag() {
     fs::write(&file_path, input).unwrap();
 
     let output = sleek_command()
-        .arg("--trailing-newline")
+        .arg("--trailing-newline=true")
         .arg(file_path.to_str().unwrap())
         .output()
         .expect("Failed to execute sleek");
@@ -190,8 +190,7 @@ fn test_uppercase_flag() {
     use std::process::Stdio;
 
     let mut child = sleek_command()
-        .arg("--uppercase")
-        .arg("true")
+        .arg("--uppercase=true")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -299,4 +298,174 @@ fn test_issue_60_comma_separated_lists_current_behavior() {
     // SELECT id, name, email, status
     // FROM users, orders
     // WHERE users.id = orders.user_id AND status = 'active'
+}
+
+#[test]
+fn test_explicit_boolean_flags_required() {
+    // Test for the new explicit boolean flag behavior
+    // All boolean flags should require explicit =true or =false values
+    let input = "select * from users";
+
+    // Test --uppercase=true (explicit true)
+    let output = run_sleek_with_stdin(&["--uppercase=true"], input.as_bytes());
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("SELECT"),
+        "uppercase=true should produce uppercase keywords"
+    );
+    assert!(
+        stdout.contains("FROM"),
+        "uppercase=true should produce uppercase keywords"
+    );
+
+    // Test --uppercase=false (explicit false)
+    let output = run_sleek_with_stdin(&["--uppercase=false"], input.as_bytes());
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("select"),
+        "uppercase=false should produce lowercase keywords"
+    );
+    assert!(
+        stdout.contains("from"),
+        "uppercase=false should produce lowercase keywords"
+    );
+
+    // Test --trailing-newline=true (explicit true)
+    let output = run_sleek_with_stdin(&["--trailing-newline=true"], input.as_bytes());
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.ends_with('\n'),
+        "trailing-newline=true should add trailing newline"
+    );
+
+    // Test --trailing-newline=false (explicit false)
+    let output = run_sleek_with_stdin(&["--trailing-newline=false"], input.as_bytes());
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        !stdout.ends_with('\n'),
+        "trailing-newline=false should not add trailing newline"
+    );
+
+    // Test combining both flags
+    let output = run_sleek_with_stdin(
+        &["--uppercase=true", "--trailing-newline=false"],
+        input.as_bytes(),
+    );
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("SELECT"), "should respect uppercase=true");
+    assert!(
+        !stdout.ends_with('\n'),
+        "should respect trailing-newline=false"
+    );
+}
+
+#[test]
+fn test_default_behavior_when_flags_not_specified() {
+    // Test the default behavior when boolean flags are not specified
+    // We should provide sensible defaults without requiring explicit values
+    let input = "select * from users";
+
+    let output = run_sleek_with_stdin(&[], input.as_bytes());
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Default should be uppercase=true (SQL convention)
+    assert!(
+        stdout.contains("SELECT"),
+        "default should be uppercase keywords"
+    );
+    assert!(
+        stdout.contains("FROM"),
+        "default should be uppercase keywords"
+    );
+
+    // Default should be trailing_newline=true (file convention)
+    assert!(
+        stdout.ends_with('\n'),
+        "default should add trailing newline"
+    );
+}
+
+#[test]
+fn test_boolean_flags_work_with_files() {
+    // Test that explicit boolean flags work with file processing too
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.sql");
+
+    let input = "select * from users";
+    fs::write(&file_path, input).unwrap();
+
+    // Test --uppercase=false --trailing-newline=false
+    let output = sleek_command()
+        .arg("--uppercase=false")
+        .arg("--trailing-newline=false")
+        .arg(file_path.to_str().unwrap())
+        .output()
+        .expect("Failed to execute sleek");
+
+    assert!(output.status.success());
+
+    let formatted_content = fs::read_to_string(&file_path).unwrap();
+    assert!(
+        formatted_content.contains("select"),
+        "should use lowercase keywords"
+    );
+    assert!(
+        formatted_content.contains("from"),
+        "should use lowercase keywords"
+    );
+    assert!(
+        !formatted_content.ends_with('\n'),
+        "should not add trailing newline"
+    );
+}
+
+#[test]
+fn test_old_flag_syntax_should_fail() {
+    // Test that the old flag syntax (without explicit values) should fail
+    // This ensures we're enforcing the new explicit boolean approach
+    let input = "select * from users";
+
+    // Test old --uppercase flag (without value) should fail
+    let output = run_sleek_with_stdin(&["--uppercase"], input.as_bytes());
+    assert!(
+        !output.status.success(),
+        "--uppercase without explicit value should fail"
+    );
+
+    // Test old --trailing-newline flag (without value) should fail
+    let output = run_sleek_with_stdin(&["--trailing-newline"], input.as_bytes());
+    assert!(
+        !output.status.success(),
+        "--trailing-newline without explicit value should fail"
+    );
+}
+
+#[test]
+fn test_both_boolean_formats_work() {
+    // Test that both space-separated and equals-separated boolean formats work
+    let input = "select * from users";
+
+    // Space format (matches help display: --uppercase <BOOL>)
+    let output1 = run_sleek_with_stdin(&["--uppercase", "true"], input.as_bytes());
+    assert!(output1.status.success());
+    let stdout1 = String::from_utf8(output1.stdout).unwrap();
+    assert!(stdout1.contains("SELECT"), "space format should work");
+
+    // Equals format (also supported)
+    let output2 = run_sleek_with_stdin(&["--uppercase=true"], input.as_bytes());
+    assert!(output2.status.success());
+    let stdout2 = String::from_utf8(output2.stdout).unwrap();
+    assert!(stdout2.contains("SELECT"), "equals format should work");
+
+    // Both should produce identical output
+    assert_eq!(
+        stdout1, stdout2,
+        "both formats should produce identical results"
+    );
 }

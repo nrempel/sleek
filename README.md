@@ -47,7 +47,8 @@ WHERE
 - Supports glob patterns, allowing you to format multiple files and patterns
 - Check whether your SQL files are already formatted without altering them with
   the `--check` flag
-- Automatically adds trailing newlines to formatted output (can be disabled with `--trailing-newline=false`)
+- Uppercase keywords by default (disable with `--uppercase false`)
+- Automatically adds trailing newlines to formatted output (disable with `--trailing-newline false`)
 
 ## Installation
 
@@ -82,13 +83,18 @@ sleek [OPTIONS] [FILE]...
 
 - `-c`, `--check`: Check if the code is already formatted without modifying files
 - `-i`, `--indent-spaces <NUM>`: Number of spaces to use for indentation (default: 4)
-- `-U`, `--uppercase <BOOL>`: Convert reserved keywords to UPPERCASE [possible values: true, false]
+- `-U`, `--uppercase <BOOL>`: Convert reserved keywords to UPPERCASE (default: true) [possible values: true, false]
 - `-l`, `--lines-between-queries <NUM>`: Number of line breaks to insert after each query (default: 2)
-- `-n`, `--trailing-newline`: Ensure files end with a trailing newline (default: true)
+- `-n`, `--trailing-newline <BOOL>`: Ensure files end with a trailing newline (default: true) [possible values: true, false]
 - `-h`, `--help`: Print help
 - `-V`, `--version`: Print version
 
 ## Examples
+
+**Note**: Boolean flags require explicit values. Both formats work:
+
+- Space format: `--uppercase true` (matches help output)
+- Equals format: `--uppercase=true` (also supported)
 
 Format a query from stdin:
 
@@ -134,7 +140,7 @@ sleek --check "queries/*.sql"
 To format files without trailing newlines:
 
 ```bash
-sleek --trailing-newline=false "queries/*.sql"
+sleek --trailing-newline false "queries/*.sql"
 ```
 
 ## Testing

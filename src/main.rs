@@ -40,7 +40,7 @@ fn process_stdin(
 
     let mut formatted = format(&input, &QueryParams::default(), format_options);
 
-    if options.trailing_newline && !formatted.ends_with('\n') {
+    if options.trailing_newline.unwrap_or(true) && !formatted.ends_with('\n') {
         formatted.push('\n');
     }
 
@@ -68,7 +68,7 @@ fn process_files(
 
             let mut formatted = format(&input, &QueryParams::default(), format_options);
 
-            if options.trailing_newline && !formatted.ends_with('\n') {
+            if options.trailing_newline.unwrap_or(true) && !formatted.ends_with('\n') {
                 formatted.push('\n');
             }
 
@@ -115,7 +115,7 @@ struct Options {
     #[arg(short, long, value_name = "NUM", default_value = "4")]
     indent_spaces: u8,
 
-    /// Convert reserved keywords to UPPERCASE
+    /// Convert reserved keywords to UPPERCASE (default: true)
     #[arg(short = 'U', long, value_name = "BOOL")]
     uppercase: Option<bool>,
 
@@ -123,7 +123,7 @@ struct Options {
     #[arg(short, long, value_name = "NUM", default_value = "2")]
     lines_between_queries: u8,
 
-    /// Ensure files end with a trailing newline
-    #[arg(short = 'n', long, default_value = "true")]
-    trailing_newline: bool,
+    /// Ensure files end with a trailing newline (default: true)
+    #[arg(short = 'n', long, value_name = "BOOL")]
+    trailing_newline: Option<bool>,
 }
