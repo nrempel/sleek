@@ -3,7 +3,8 @@
 [![CLI Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=v*&logo=rust&logoColor=white&label=CLI)](https://github.com/nrempel/sleek/releases)
 [![VS Code Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=vscode-v*&logo=visualstudiocode&logoColor=white&label=VS%20Code)](https://github.com/nrempel/sleek/releases)
 [![Crates.io](https://img.shields.io/crates/v/sleek?logo=rust&logoColor=white)](https://crates.io/crates/sleek)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/nrempel/sleek/rust.yml?logo=github&logoColor=white&label=CI)](https://github.com/nrempel/sleek/actions)
+[![CLI CI](https://img.shields.io/github/actions/workflow/status/nrempel/sleek/cli-ci.yml?logo=rust&logoColor=white&label=CLI%20CI)](https://github.com/nrempel/sleek/actions)
+[![Extension CI](https://img.shields.io/github/actions/workflow/status/nrempel/sleek/extension-ci.yml?logo=visualstudiocode&logoColor=white&label=Extension%20CI)](https://github.com/nrempel/sleek/actions)
 [![Downloads](https://img.shields.io/crates/d/sleek?logo=rust&logoColor=white)](https://crates.io/crates/sleek)
 [![License](https://img.shields.io/crates/l/sleek?color=blue)](https://github.com/nrempel/sleek/blob/main/LICENSE)
 
