@@ -83,6 +83,40 @@ jobs:
 
       # Version is already correct in package.json, no need to update
 
+      - name: Extract changelog for version
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        id: changelog
+        run: |
+          # Extract the version from the tag (remove 'vscode-v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/vscode-v}
+          echo "Extracting changelog for version: $VERSION"
+          
+          # Extract the section for this version from vscode-extension/CHANGELOG.md
+          # Find the line with [VERSION] and extract until the next version or end
+          awk -v version="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if ($0 ~ "\\[" version "\\]") {
+                found = 1
+                print $0
+                next
+              }
+            }
+            found && /^## \[/ { exit }
+            found { print }
+          ' vscode-extension/CHANGELOG.md > release_notes.md
+          
+          # Set the content as output (escape for GitHub Actions)
+          if [ -s release_notes.md ]; then
+            {
+              echo 'CHANGELOG<<EOF'
+              cat release_notes.md
+              echo EOF
+            } >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG=VS Code Extension Release ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create GitHub Release for Extension
         if: startsWith(github.ref, 'refs/tags/vscode-v')
         uses: softprops/action-gh-release@v2
@@ -90,16 +124,7 @@ jobs:
           files: vscode-extension/*.vsix
           tag_name: ${{ github.ref_name }}
           name: "VS Code Extension ${{ steps.get_version.outputs.VERSION }}"
-          body: |
-            ## VS Code Extension Release ${{ steps.get_version.outputs.VERSION }}
-            
-            This release includes the Sleek SQL Formatter VS Code extension.
-            
-            ### Installation
-            You can install this extension directly from the VS Code Marketplace or by downloading the `.vsix` file and installing it manually.
-            
-            ### Changes
-            See the [CHANGELOG.md](vscode-extension/CHANGELOG.md) for details.
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
           draft: false
           prerelease: false
         env:
