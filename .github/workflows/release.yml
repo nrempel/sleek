@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - v*
+      - '!vscode-v*'  # Exclude VSCode extension tags
 
 permissions:
   contents: write
