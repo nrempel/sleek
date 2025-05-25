@@ -2,6 +2,21 @@
 
 All notable changes to the "sleek-sql-formatter" extension will be documented in this file.
 
+## [0.2.3] - 2024-12-19
+
+### Fixed
+
+- Fixed extension breaking when latest GitHub release is a VSCode extension release
+- Extension now correctly filters CLI releases from mixed release types
+- Improved release detection logic to handle repositories with both CLI and extension releases
+- Added comprehensive test coverage for release filtering functionality
+
+### Technical Changes
+
+- Modified `fetchReleaseData` to fetch all releases instead of just latest
+- Added `findLatestCliRelease` method to identify and sort CLI releases
+- Enhanced error handling for mixed release scenarios
+
 ## [0.2.2] - 2024-12-19
 
 ### Added
