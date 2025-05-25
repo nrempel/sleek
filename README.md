@@ -1,8 +1,8 @@
 # Sleek ✨
 
-[![Crates.io](https://img.shields.io/crates/v/sleek?logo=rust&logoColor=white&label=CLI)](https://crates.io/crates/sleek)
-[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/lucent.sleek-sql?logo=visualstudiocode&logoColor=white&label=VS%20Code)](https://marketplace.visualstudio.com/items?itemName=lucent.sleek-sql)
-[![GitHub Releases](https://img.shields.io/github/v/release/nrempel/sleek?logo=github&logoColor=white&label=Latest)](https://github.com/nrempel/sleek/releases)
+[![CLI Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=v*&logo=rust&logoColor=white&label=CLI)](https://github.com/nrempel/sleek/releases)
+[![VS Code Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=vscode-v*&logo=visualstudiocode&logoColor=white&label=VS%20Code)](https://github.com/nrempel/sleek/releases)
+[![Crates.io](https://img.shields.io/crates/v/sleek?logo=rust&logoColor=white)](https://crates.io/crates/sleek)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/nrempel/sleek/rust.yml?logo=github&logoColor=white&label=CI)](https://github.com/nrempel/sleek/actions)
 [![Downloads](https://img.shields.io/crates/d/sleek?logo=rust&logoColor=white)](https://crates.io/crates/sleek)
 [![License](https://img.shields.io/crates/l/sleek?color=blue)](https://github.com/nrempel/sleek/blob/main/LICENSE)
