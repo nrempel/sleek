@@ -51,3 +51,19 @@ jobs:
 
       - name: Run tests
         run: cargo test --verbose
+
+      - name: Cache cargo-audit
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: ${{ runner.os }}-cargo-audit
+          restore-keys: ${{ runner.os }}-cargo-audit
+
+      - name: Install cargo-audit
+        if: matrix.os == 'ubuntu-latest'
+        run: which cargo-audit || cargo install cargo-audit
+
+      - name: Security audit
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo audit

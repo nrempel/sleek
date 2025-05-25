@@ -1,6 +1,6 @@
-# CI/CD & Development Guide
+# Releases & CI/CD Guide
 
-This project contains both a Rust CLI and a VS Code extension. CI/CD is managed via GitHub Actions for both components. This guide explains how to build, test, release, and contribute to both parts of the project.
+This project contains both a Rust CLI and a VS Code extension. Release automation is managed via GitHub Actions for both components. This guide explains how to build, test, and release both parts of the project.
 
 ---
 

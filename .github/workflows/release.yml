@@ -117,11 +117,15 @@ jobs:
           ' CHANGELOG.md > release_notes.md
           
           # Set the content as output (escape for GitHub Actions)
-          {
-            echo 'CHANGELOG<<EOF'
-            cat release_notes.md
-            echo EOF
-          } >> $GITHUB_OUTPUT
+          if [ -s release_notes.md ]; then
+            {
+              echo 'CHANGELOG<<EOF'
+              cat release_notes.md
+              echo EOF
+            } >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG=Release $VERSION" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

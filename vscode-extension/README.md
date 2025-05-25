@@ -78,7 +78,7 @@ MIT
 ---
 
 > **Contributing?**
-> For development, CI/CD, and testing details, see the [project CI-CD guide](../CI-CD.md).
+> For development, CI/CD, and testing details, see the [project releases guide](../RELEASES.md).
 
 ## Development
 
