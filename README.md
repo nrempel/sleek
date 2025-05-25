@@ -7,6 +7,10 @@
 > **✨ Looking for a VS Code extension?**
 > Sleek is also available as a [VS Code extension](./vscode-extension) for SQL formatting! 🚀
 
+<p align="center">
+  <img src="./sleek.png" alt="Sleek Logo" width="200" />
+</p>
+
 Sleek is a CLI tool for formatting SQL. It helps you maintain a consistent style
 across your SQL code, enhancing readability and productivity.
 
