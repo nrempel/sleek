@@ -5,7 +5,7 @@
 [![GitHub Releases](https://img.shields.io/github/release/nrempel/sleek.svg)](https://github.com/nrempel/sleek/releases)
 
 > **✨ Looking for a VS Code extension?**
-> Sleek is also available as a [VS Code extension](./vscode-extension) for SQL formatting! 🚀
+> Sleek is also available as a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=lucent.sleek-sql) for SQL formatting! 🚀
 
 <p align="center">
   <img src="./sleek.png" alt="Sleek Logo" width="200" />
@@ -19,8 +19,9 @@ The heavy lifting is done by the
 
 ## VS Code Extension
 
+- **[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=lucent.sleek-sql)**
 - See its [README](./vscode-extension/README.md) for usage and features.
-- See [CI/CD documentation](./vscode-extension/CI-CD.md) for build, test, and release automation details.
+- See [releases documentation](./RELEASES.md) for build, test, and release automation details.
 
 ## Before and After
 
