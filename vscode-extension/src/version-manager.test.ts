@@ -155,6 +155,13 @@ describe('Version Manager', () => {
             strictEqual(parseReleaseTag('beta-1.2.3'), null);
             strictEqual(parseReleaseTag('1.2'), null);
         });
+
+        test('should ignore VSCode extension releases and return null', () => {
+            // These should return null because they are VSCode extension releases, not CLI releases
+            strictEqual(parseReleaseTag('vscode-extension-0.2.2'), null);
+            strictEqual(parseReleaseTag('vs-code-extension-1.0.0'), null);
+            strictEqual(parseReleaseTag('extension-0.1.5'), null);
+        });
     });
 
     describe('extractReleaseNotes', () => {

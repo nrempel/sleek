@@ -300,7 +300,33 @@ export class SleekDownloader {
     }
 
     /**
+     * Find the latest CLI release from a list of releases
+     */
+    private findLatestCliRelease(releases: Array<{ tag_name: string; body: string; assets: Array<{ name: string; browser_download_url: string }> }>): { tag_name: string; body: string; assets: Array<{ name: string; browser_download_url: string }> } | null {
+        const cliReleases = releases.filter(release => {
+            const version = parseReleaseTag(release.tag_name);
+            return version !== null;
+        });
+
+        if (cliReleases.length === 0) {
+            return null;
+        }
+
+        return cliReleases.sort((a, b) => {
+            const versionA = parseReleaseTag(a.tag_name);
+            const versionB = parseReleaseTag(b.tag_name);
+            if (!versionA || !versionB) {
+                return 0;
+            }
+            // Sort in descending order (latest first)
+            return versionB.localeCompare(versionA, undefined, { numeric: true, sensitivity: 'base' });
+        })[0];
+    }
+
+    /**
      * Fetch release data from GitHub API
+     * Now fetches all releases and filters for CLI releases to handle cases
+     * where the latest release might be a VSCode extension release
      */
     private fetchReleaseData(): Promise<{ 
         tag_name: string; 
@@ -308,7 +334,7 @@ export class SleekDownloader {
         assets: Array<{ name: string; browser_download_url: string }> 
     }> {
         return new Promise((resolve, reject) => {
-            const url = `https://api.github.com/repos/${this.githubRepo}/releases/latest`;
+            const url = `https://api.github.com/repos/${this.githubRepo}/releases`;
             
             https.get(url, {
                 headers: { 'User-Agent': 'sleek-sql-formatter-vscode' }
@@ -319,11 +345,19 @@ export class SleekDownloader {
                 });
                 res.on('end', () => {
                     try {
-                        resolve(JSON.parse(data) as { 
+                        const releases = JSON.parse(data) as Array<{ 
                             tag_name: string; 
                             body: string; 
                             assets: Array<{ name: string; browser_download_url: string }> 
-                        });
+                        }>;
+                        
+                        const latestCliRelease = this.findLatestCliRelease(releases);
+                        if (!latestCliRelease) {
+                            reject(new Error('No CLI releases found'));
+                            return;
+                        }
+                        
+                        resolve(latestCliRelease);
                     } catch (_error) {
                         reject(new Error('Failed to parse GitHub API response'));
                     }

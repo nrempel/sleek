@@ -1,6 +1,29 @@
 import { test, describe } from 'node:test';
 import { strictEqual, throws } from 'node:assert';
 import { selectSleekExecutable } from './sleek-executable-selector';
+import { parseReleaseTag } from './version-manager';
+
+// Helper function to simulate the fixed behavior (for testing purposes)
+function findLatestCliRelease(releases: Array<{ tag_name: string; body: string; assets?: unknown[] }>): { tag_name: string; body: string; assets?: unknown[] } | null {
+    const cliReleases = releases.filter(release => {
+        const version = parseReleaseTag(release.tag_name);
+        return version !== null;
+    });
+
+    if (cliReleases.length === 0) {
+        return null;
+    }
+
+    return cliReleases.sort((a, b) => {
+        const versionA = parseReleaseTag(a.tag_name);
+        const versionB = parseReleaseTag(b.tag_name);
+        if (!versionA || !versionB) {
+            return 0;
+        }
+        // Sort in descending order (latest first)
+        return versionB.localeCompare(versionA, undefined, { numeric: true, sensitivity: 'base' });
+    })[0];
+}
 
 describe('Sleek Downloader', () => {
     
@@ -121,6 +144,126 @@ describe('Sleek Downloader', () => {
             // the extension needs to find the "best" version automatically
             
             strictEqual(true, true); // Placeholder - actual implementation tested via integration
+        });
+    });
+
+    describe('release filtering', () => {
+        test('should filter CLI releases from mixed release list', () => {
+            // Simulate a scenario where GitHub releases include both CLI and VSCode extension releases
+            const mockReleases = [
+                { tag_name: 'vscode-extension-0.2.2', body: 'VSCode extension release' },
+                { tag_name: 'v0.5.0', body: 'CLI release' },
+                { tag_name: 'v0.4.9', body: 'Previous CLI release' },
+                { tag_name: 'extension-0.1.0', body: 'Another extension release' }
+            ];
+
+            // Filter for CLI releases only
+            const cliReleases = mockReleases.filter(release => {
+                const version = parseReleaseTag(release.tag_name);
+                return version !== null;
+            });
+
+            // Should find 2 CLI releases
+            strictEqual(cliReleases.length, 2);
+            strictEqual(cliReleases[0].tag_name, 'v0.5.0');
+            strictEqual(cliReleases[1].tag_name, 'v0.4.9');
+        });
+
+        test('should handle case where latest release is VSCode extension', () => {
+            // This test demonstrates the problem scenario:
+            // Latest release is a VSCode extension, but there are CLI releases available
+            const mockReleases = [
+                { tag_name: 'vscode-extension-0.2.2', body: 'Latest VSCode extension' }, // This would be "latest"
+                { tag_name: 'v0.5.0', body: 'Latest CLI release' },
+                { tag_name: 'v0.4.9', body: 'Previous CLI release' }
+            ];
+
+            // Current implementation would fail because parseReleaseTag('vscode-extension-0.2.2') returns null
+            // Fixed implementation should find v0.5.0 as the latest CLI release
+            const latestCliRelease = mockReleases
+                .filter(release => parseReleaseTag(release.tag_name) !== null)
+                .sort((a, b) => {
+                    const versionA = parseReleaseTag(a.tag_name);
+                    const versionB = parseReleaseTag(b.tag_name);
+                    if (!versionA || !versionB) {
+                    return 0;
+                }
+                    // Sort in descending order (latest first)
+                    return versionB.localeCompare(versionA, undefined, { numeric: true, sensitivity: 'base' });
+                })[0];
+
+            strictEqual(latestCliRelease.tag_name, 'v0.5.0');
+        });
+
+        test('findLatestCliRelease should work with mixed releases', () => {
+            const mockReleases = [
+                { tag_name: 'vscode-extension-0.2.2', body: 'VSCode extension release' },
+                { tag_name: 'v0.5.0', body: 'CLI release' },
+                { tag_name: 'v0.4.9', body: 'Previous CLI release' }
+            ];
+
+            const result = findLatestCliRelease(mockReleases);
+            strictEqual(result?.tag_name, 'v0.5.0');
+        });
+
+        test('findLatestCliRelease should return null when no CLI releases exist', () => {
+            const mockReleases = [
+                { tag_name: 'vscode-extension-0.2.2', body: 'VSCode extension release' },
+                { tag_name: 'extension-0.1.0', body: 'Another extension release' }
+            ];
+
+            const result = findLatestCliRelease(mockReleases);
+            strictEqual(result, null);
+        });
+
+        test('demonstrates current implementation issue', () => {
+            // This test shows what happens with the current implementation
+            // when the latest release is a VSCode extension
+            const latestRelease = { tag_name: 'vscode-extension-0.2.2', body: 'VSCode extension' };
+            
+            // Current implementation: parseReleaseTag returns null for VSCode extension releases
+            const version = parseReleaseTag(latestRelease.tag_name);
+            strictEqual(version, null);
+            
+            // This would cause getLatestReleaseInfo() to throw:
+            // "Could not parse version from latest release"
+            // Because it expects parseReleaseTag to return a valid version
+        });
+
+        test('fixed implementation handles mixed releases correctly', () => {
+            // This test demonstrates that the fixed implementation can handle
+            // a scenario where the GitHub releases list has mixed release types
+            const mockGitHubReleases = [
+                { 
+                    tag_name: 'vscode-extension-0.2.2', 
+                    body: 'VSCode extension release',
+                    assets: [{ name: 'extension.vsix', browser_download_url: 'https://example.com/extension.vsix' }]
+                },
+                { 
+                    tag_name: 'v0.5.0', 
+                    body: 'Latest CLI release',
+                    assets: [
+                        { name: 'sleek-linux-x64', browser_download_url: 'https://example.com/sleek-linux-x64' },
+                        { name: 'sleek-darwin-x64', browser_download_url: 'https://example.com/sleek-darwin-x64' },
+                        { name: 'sleek-windows-x64.exe', browser_download_url: 'https://example.com/sleek-windows-x64.exe' }
+                    ]
+                },
+                { 
+                    tag_name: 'v0.4.9', 
+                    body: 'Previous CLI release',
+                    assets: [
+                        { name: 'sleek-linux-x64', browser_download_url: 'https://example.com/sleek-linux-x64-old' }
+                    ]
+                }
+            ];
+
+            // The fixed implementation should find the latest CLI release (v0.5.0)
+            // even though the latest overall release is a VSCode extension
+            const latestCliRelease = findLatestCliRelease(mockGitHubReleases);
+            
+            strictEqual(latestCliRelease?.tag_name, 'v0.5.0');
+            strictEqual(latestCliRelease?.body, 'Latest CLI release');
+            strictEqual(latestCliRelease?.assets?.length, 3);
         });
     });
 }); 
