@@ -78,11 +78,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
 
-      - name: Update package.json version
-        if: startsWith(github.ref, 'refs/tags/vscode-v')
-        run: |
-          npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
-          npm run package
+      # Version is already correct in package.json, no need to update
 
       - name: Create GitHub Release for Extension
         if: startsWith(github.ref, 'refs/tags/vscode-v')
