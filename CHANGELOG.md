@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-01-25
+
+### Fixed
+
+- **BREAKING**: Fixed check mode bug where `--check` with multiple files would incorrectly succeed if the first file was formatted, even when subsequent files were unformatted
+- Check mode now properly validates ALL files before returning success
+- This may cause existing CI/CD scripts to fail if they were unknowingly relying on the buggy behavior
+
+### Added
+
+- Comprehensive integration test suite with 16 new tests covering:
+  - Command line flag combinations and edge cases
+  - Error handling for invalid inputs and file operations
+  - Complex SQL formatting scenarios
+  - Multiple file operations with glob patterns
+  - Check mode validation with various file states
+- Test for check mode with multiple files (both mixed and all-formatted cases)
+- Tests for lines-between-queries flag with different values
+- Tests for short flag aliases (-i, -U, -l, -n)
+- Tests for combining all CLI flags together
+- Tests for SQL with comments preservation
+- Tests for files without .sql extension
+- Tests for read-only file error handling
+- Tests for empty and whitespace-only input handling
+
+### Infrastructure
+
+- Added regression protection: tests verified to fail with buggy code and pass with fix
+- Improved test coverage from 21 to 37 integration tests
+
 ## [0.4.0] - 2025-01-11
 
 > **⚠️ MAJOR BREAKING RELEASE**  
