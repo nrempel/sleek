@@ -1,6 +1,6 @@
 # Sleek ✨
 
-[![CLI Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=v*&logo=rust&logoColor=white&label=CLI)](https://github.com/nrempel/sleek/releases)
+[![CLI Release](https://img.shields.io/badge/CLI-v0.4.0-orange?logo=rust&logoColor=white)](https://github.com/nrempel/sleek/releases/tag/v0.4.0)
 [![VS Code Release](https://img.shields.io/github/v/release/nrempel/sleek?filter=vscode-v*&logo=visualstudiocode&logoColor=white&label=VS%20Code)](https://github.com/nrempel/sleek/releases)
 [![Crates.io](https://img.shields.io/crates/v/sleek?logo=rust&logoColor=white)](https://crates.io/crates/sleek)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/nrempel/sleek/rust.yml?logo=github&logoColor=white&label=CI)](https://github.com/nrempel/sleek/actions)
