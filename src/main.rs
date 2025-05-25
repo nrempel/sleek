@@ -76,10 +76,10 @@ fn process_files(
                 if input != formatted {
                     return Err(Error::Check);
                 }
-                return Ok(());
+                // Continue checking other files - don't return early
+            } else {
+                fs::write(&path, formatted)?;
             }
-
-            fs::write(&path, formatted)?;
         }
     }
     Ok(())

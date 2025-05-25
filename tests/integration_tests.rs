@@ -606,19 +606,17 @@ fn test_multiple_files_with_glob_pattern() {
 #[test]
 fn test_check_mode_with_multiple_files() {
     // Test check mode with multiple files where some are formatted and some aren't
-    // NOTE: Current implementation has a bug - it only checks the first file and returns
-    // This test documents the current behavior
     let temp_dir = TempDir::new().unwrap();
 
-    let unformatted_file = temp_dir.path().join("a_unformatted.sql"); // 'a_' prefix to ensure it's first
-    let formatted_file = temp_dir.path().join("b_formatted.sql");
+    let formatted_file = temp_dir.path().join("formatted.sql");
+    let unformatted_file = temp_dir.path().join("unformatted.sql");
 
-    // One unformatted file (will be checked first due to alphabetical order)
-    fs::write(&unformatted_file, "select * from orders").unwrap();
     // One properly formatted file (with trailing newline)
     fs::write(&formatted_file, "SELECT\n    *\nFROM\n    users\n").unwrap();
+    // One unformatted file
+    fs::write(&unformatted_file, "select * from orders").unwrap();
 
-    // Check should fail because the first file (alphabetically) is unformatted
+    // Check should fail because one file is unformatted (regardless of order)
     let glob_pattern = format!("{}/*.sql", temp_dir.path().display());
     let output = sleek_command()
         .arg("--check")
@@ -628,7 +626,33 @@ fn test_check_mode_with_multiple_files() {
 
     assert!(
         !output.status.success(),
-        "check should fail when the first file is unformatted"
+        "check should fail when any file is unformatted"
+    );
+}
+
+#[test]
+fn test_check_mode_with_all_files_formatted() {
+    // Test check mode with multiple files where all are properly formatted
+    let temp_dir = TempDir::new().unwrap();
+
+    let file1 = temp_dir.path().join("file1.sql");
+    let file2 = temp_dir.path().join("file2.sql");
+
+    // Both files properly formatted (with trailing newlines)
+    fs::write(&file1, "SELECT\n    *\nFROM\n    users\n").unwrap();
+    fs::write(&file2, "SELECT\n    *\nFROM\n    orders\n").unwrap();
+
+    // Check should succeed because all files are properly formatted
+    let glob_pattern = format!("{}/*.sql", temp_dir.path().display());
+    let output = sleek_command()
+        .arg("--check")
+        .arg(&glob_pattern)
+        .output()
+        .expect("Failed to execute sleek");
+
+    assert!(
+        output.status.success(),
+        "check should succeed when all files are properly formatted"
     );
 }
 
