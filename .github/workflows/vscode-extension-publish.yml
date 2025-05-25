@@ -91,7 +91,7 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/vscode-v}
           echo "Extracting changelog for version: $VERSION"
           
-          # Extract the section for this version from vscode-extension/CHANGELOG.md
+          # Extract the section for this version from CHANGELOG.md
           # Find the line with [VERSION] and extract until the next version or end
           awk -v version="$VERSION" '
             /^## \[/ {
@@ -104,7 +104,7 @@ jobs:
             }
             found && /^## \[/ { exit }
             found { print }
-          ' vscode-extension/CHANGELOG.md > release_notes.md
+          ' CHANGELOG.md > release_notes.md
           
           # Set the content as output (escape for GitHub Actions)
           if [ -s release_notes.md ]; then
