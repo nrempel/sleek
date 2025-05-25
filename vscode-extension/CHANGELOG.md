@@ -2,6 +2,31 @@
 
 All notable changes to the "sleek-sql-formatter" extension will be documented in this file.
 
+## [0.2.2] - 2024-12-19
+
+### Added
+
+- Automatic CLI download functionality - extension now downloads Sleek CLI automatically if not found
+- Auto-update checking - checks for Sleek CLI updates every 24 hours
+- Version management commands for viewing current version and update notifications
+- Debug info command for troubleshooting
+- Enhanced error handling and user feedback
+- Improved executable selection logic with version prioritization
+
+### Enhanced
+
+- Better status bar integration with real-time updates
+- Improved configuration handling
+- Enhanced cross-platform support
+- More robust error handling and recovery
+
+### Commands Added
+
+- `Sleek: Download CLI` - Manually download/update Sleek CLI
+- `Sleek: Check for Updates` - Check for available CLI updates
+- `Sleek: Show Version Info` - Display current Sleek CLI version
+- `Sleek: Debug Info` - Show debugging information
+
 ## [0.1.0] - 2024-01-01
 
 ### Added
