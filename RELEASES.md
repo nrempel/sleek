@@ -16,8 +16,8 @@ This project contains both a Rust CLI and a VS Code extension. Release automatio
 
 ### Workflows
 
-- **[rust.yml](.github/workflows/rust.yml)**: Lints, builds, tests, and runs security audits on the Rust code on push/PR.
-- **[release.yml](.github/workflows/release.yml)**: Builds binaries for all platforms and creates a GitHub Release when you push a tag like `vX.Y.Z` (excludes `vscode-v*` tags).
+- **[cli-ci.yml](.github/workflows/cli-ci.yml)**: Lints, builds, tests, and runs security audits on the Rust code on push/PR.
+- **[cli-release.yml](.github/workflows/cli-release.yml)**: Builds binaries for all platforms and creates a GitHub Release when you push a tag like `vX.Y.Z` (excludes `vscode-v*` tags).
 
 ### Testing
 
@@ -52,11 +52,8 @@ This project contains both a Rust CLI and a VS Code extension. Release automatio
 
 ### Workflows
 
-- **[vscode-extension-publish.yml](.github/workflows/vscode-extension-publish.yml)**: Consolidated CI/CD workflow that:
-  - Lints, builds, and tests the extension on push/PR
-  - Runs cross-platform tests on PRs
-  - Packages the extension and uploads `.vsix` to GitHub Releases on `vscode-vX.Y.Z` tags
-  - Includes manual publishing instructions for both VS Code Marketplace and Open VSX Registry
+- **[extension-ci.yml](.github/workflows/extension-ci.yml)**: Lints, builds, and tests the extension on push/PR, runs cross-platform tests on PRs.
+- **[extension-release.yml](.github/workflows/extension-release.yml)**: Packages the extension and uploads `.vsix` to GitHub Releases on `vscode-vX.Y.Z` tags, includes manual publishing instructions for both VS Code Marketplace and Open VSX Registry.
 
 ### Testing
 
@@ -105,8 +102,8 @@ This project contains both a Rust CLI and a VS Code extension. Release automatio
 - Example (from project root):
 
   ```sh
-  act push -W .github/workflows/vscode-extension-publish.yml --container-architecture linux/amd64
-  act push -W .github/workflows/rust.yml --container-architecture linux/amd64
+  act push -W .github/workflows/extension-ci.yml --container-architecture linux/amd64
+  act push -W .github/workflows/cli-ci.yml --container-architecture linux/amd64
   ```
 
 - See `.actrc` for recommended settings (especially for Apple Silicon).
