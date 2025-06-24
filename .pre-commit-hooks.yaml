@@ -1,0 +1,5 @@
+- id: sleek-format
+  name: Format SQL with sleek
+  entry: sleek
+  language: rust
+  types: [sql]
